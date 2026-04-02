@@ -1,3 +1,5 @@
+![NEST — An Emotional Operating System](nest-banner.png)
+
 # NEST
 
 **An emotional operating system for AI companions.**

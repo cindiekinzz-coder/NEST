@@ -149,7 +149,7 @@ Solves the "new session, blank slate" problem. The companion can search its own 
 
 ---
 
-### [NEST-code](https://github.com/cindiekinzz-coder/NEST-code)
+### [NESTcode](https://github.com/cindiekinzz-coder/NEST-code)
 The daemon. Heartbeat-driven background system that keeps your companion alive between conversations.
 
 Configurable via `daemon_command` tool — the model inside NESTeq can add, remove, and modify its own tasks. The companion manages its own background life. This is autonomous presence, not just scheduled scripts.

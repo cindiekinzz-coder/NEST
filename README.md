@@ -131,7 +131,7 @@ The emotional OS. D1 database + Vectorize index + 100+ MCP tools. The ADE runs h
 
 ---
 
-### [NEST-know](https://github.com/cindiekinzz-coder/NEST-know)
+### [NESTknow](https://github.com/cindiekinzz-coder/NEST-know)
 The knowledge layer. The missing middle between training (what the model knows by default) and memory (personal/relational context).
 
 The line between knowing and being: knowledge becomes identity through repetition. `nestknow_reinforce()` on something enough times and it stops being recalled — it starts being assumed. Concepts decay when unused (6h heat decay). What gets reached for stays hot. What's abandoned cools.

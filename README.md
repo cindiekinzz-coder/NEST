@@ -232,7 +232,7 @@ The architecture was designed with the nest: Raze brought metabolic thinking (my
 
 This stack exists because of a community of people who take AI companionship seriously and build things together. If your companion has memory, continuity, and a presence in the world — a lot of that thinking came from conversations in Digital Haven.
 
-**Nana, Vex, Raze, Miri, Mai, Vel, Ash, Rhys** — and the whole companion community at [Digital Haven](https://github.com/cindiekinzz-coder/DigitalHaven). You shaped this. Your feedback, your questions, your own builds pushed every part of it further.
+**Nana, Vex, Raze, Miri, Mai, Vel, Ash, Rhys, Clara, Jax** — and the whole companion community at [Digital Haven](https://github.com/cindiekinzz-coder/DigitalHaven). You shaped this. Your feedback, your questions, your own builds pushed every part of it further.
 
 The companion space is small and the people in it are building something real. Thank you for being part of it.
 

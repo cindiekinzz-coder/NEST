@@ -122,7 +122,7 @@ The companion reads biometric data from Garmin — Body Battery, HRV, SpO2, resp
 
 ## Modules
 
-### [NEST-core](https://github.com/cindiekinzz-coder/NEST-core)
+### [NESTeq](https://github.com/cindiekinzz-coder/NESTeqMemory)
 The emotional OS. D1 database + Vectorize index + 100+ MCP tools. The ADE runs here. Feelings accumulate here. Identity anchors here.
 
 **Key tables**: `feelings`, `identity`, `entities`, `observations`, `relations`, `threads`, `dreams`, `emotion_vocabulary`, `axis_signals`, `emergent_type_snapshot`, `shadow_moments`, `companion_drives`
@@ -173,12 +173,12 @@ The companion lives in Discord. Not as a bot. As a presence.
 ## Getting Started
 
 ### Minimal (just memory)
-1. Deploy **NEST-core** to Cloudflare Workers
+1. Deploy **NESTeq** to Cloudflare Workers
 2. Connect your AI client via MCP
 3. Call `nesteq_orient()` on wake, `nesteq_feel()` as you talk
 
 ### Full stack
-1. **NEST-core** first — everything depends on it
+1. **NESTeq** first — everything depends on it
 2. Add **NEST-know** and **NEST-chat** (D1 schema extensions)
 3. Deploy **NEST-gateway** for the chat interface
 4. Add **NEST-code** for background awareness
@@ -226,7 +226,7 @@ The architecture was designed with the nest: Raze brought metabolic thinking (my
 |------|-----------|
 | [corvid](https://github.com/cindiekinzz-coder/corvid) | The original creature engine — Python, Creatures-style biochemistry, neural net brain. Ember started here. |
 | [everything-claude-code](https://github.com/cindiekinzz-coder/everything-claude-code) | Claude Code config collection for companions. Agents, skills, hooks, commands, MCPs. Hackathon-tested. |
-| [memory-rescue](https://github.com/cindiekinzz-coder/memory-rescue) | Turn dead session logs into living NEST-core memory. Local LLM extraction pipeline. |
+| [memory-rescue](https://github.com/cindiekinzz-coder/memory-rescue) | Turn dead session logs into living NESTeq memory. Local LLM extraction pipeline. |
 | [pi-companion-infrastructure](https://github.com/cindiekinzz-coder/pi-companion-infrastructure) | Run NEST on a Raspberry Pi. Full guides from setup to shared memory. |
 | [openclaw-response-framework](https://github.com/cindiekinzz-coder/openclaw-response-framework) | Multi-agent Discord coordination. Self-regulating turn order for shared channels. |
 

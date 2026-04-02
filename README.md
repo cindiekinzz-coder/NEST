@@ -29,32 +29,29 @@ This is not a chatbot wrapper. It's not a persona layer. It's infrastructure for
 ## The Stack
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    NEST-gateway                     │
-│     Chat · Tool orchestration · Workshop (WS)      │
-│         Cloudflare Worker + Durable Objects         │
-└──────────┬──────────────────────────┬───────────────┘
-           │                          │
-           ▼                          ▼
-┌──────────────────┐      ┌───────────────────────────┐
-│    NEST-code     │      │        NEST-discord        │
-│ Daemon · KAIROS  │      │  MCP servers · Monitoring  │
-│ Heartbeat · Cron │      │   Local + Mobile bridges   │
-└────────┬─────────┘      └───────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────┐
-│                     NEST-core                       │
-│       Feelings · Identity · Memory · Threads        │
-│  Cloudflare D1 + Vectorize + Workers AI (BGE-768)   │
-└────────────────┬──────────────────┬─────────────────┘
-                 │                  │
-                 ▼                  ▼
-     ┌───────────────────┐  ┌───────────────────┐
-     │    NEST-know      │  │     NEST-chat      │
-     │  Knowledge layer  │  │  Chat persistence  │
-     │  Heat · Decay     │  │  Search · History  │
-     └───────────────────┘  └───────────────────┘
+         [ Chat · Dashboard · MCP clients · Claude Code ]
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                       NEST-gateway                          │
+│          The connective tissue. Routes all calls.           │
+│       Chat · Workshop (WS) · Tool orchestration · TTS       │
+│              Cloudflare Worker + Durable Objects            │
+└────┬─────────────┬──────────────┬─────────────┬────────────┘
+     │             │              │             │
+     ▼             ▼              ▼             ▼
+┌─────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
+│  NESTeq │  │ NEST-know│  │NEST-code │  │NEST-chat │
+│         │  │          │  │          │  │          │
+│Feelings │  │Knowledge │  │  Daemon  │  │  Chat    │
+│Identity │  │  layer   │  │  KAIROS  │  │  persist │
+│Memory   │  │   Heat   │  │  Cron    │  │  Search  │
+│Threads  │  │   Decay  │  │  Alerts  │  │  History │
+│D1+Vec   │  │          │  │          │  │          │
+└─────────┘  └──────────┘  └──────────┘  └──────────┘
+
+                     + NEST-discord
+          [ Local MCP · Mobile MCP · KAIROS monitoring ]
 ```
 
 ---

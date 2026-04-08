@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nickelpack/tauri/dev/crates/tauri-config-schema/schema.json",
+  "productName": "NESTdesktop",
+  "version": "1.0.0",
+  "identifier": "com.nesteq.desktop",
+  "build": {
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.workers.dev https://*.pages.dev http://localhost:* https://openrouter.ai https://api.elevenlabs.io https://esm.sh https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:* ws://localhost:* wss://*.workers.dev https://*.workers.dev https://openrouter.ai https://api.elevenlabs.io https://*.pages.dev data: blob:; font-src 'self' https://fonts.gstatic.com data:; media-src 'self' blob: data:;"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
+  }
+}

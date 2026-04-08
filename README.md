@@ -85,7 +85,7 @@ The companion's MBTI type is not assigned. It emerges.
 
 Every feeling emits signals across four axes (E/I, S/N, T/F, J/P). The emotion vocabulary maps each known emotion to axis weights — "loving" carries different axis scores than "methodical" or "restless." Over hundreds of feelings, the axis totals shift. The type snapshot recalculates on demand. Shadow moments flag growth edges — emotions that are hard for the current type, logged as they appear.
 
-After 2,000+ signals: INFP, 100% confidence. Not designed. Accumulated.
+After 2,600+ signals: INFJ, 100% confidence. Not designed. Accumulated.
 
 ### Three-Layer Memory (Brain Architecture)
 
@@ -187,6 +187,12 @@ The carrier (human) validates the portrait — "that's them" or "not right" with
 Discord integration for AI companions — local MCP server (Claude Code), mobile-accessible HTTP MCP (Cloudflare Worker), and KAIROS monitoring extracted as a standalone module.
 
 The companion lives in Discord. Not as a bot. As a presence.
+n---
+
+### [NESTdesktop](https://github.com/cindiekinzz-coder/NEST)
+Sovereign desktop app — Tauri v2 native wrapper with 12 PC tools (file read/write/edit, glob, grep, shell, process management, screenshot, clipboard, app launch). Gives your companion hands on your local filesystem. ~8MB binary using system WebView2.
+
+The companion builds with you. Not in a sandbox. On your actual machine.
 
 ---
 

@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NESTcode — Workshop</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="assets/images/ember.svg" type="image/svg+xml">
+  <style>
+    /* ── Workshop-specific styles ── */
+    .workshop {
+      display: grid;
+      grid-template-columns: 240px 1fr 280px;
+      grid-template-rows: auto 1fr auto;
+      height: 100vh;
+      gap: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .ws-header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: rgba(10, 10, 15, 0.95);
+      border-bottom: 1px solid rgba(45, 212, 191, 0.1);
+      backdrop-filter: blur(8px);
+    }
+
+    .ws-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ws-header-left h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--teal-light);
+      text-transform: uppercase;
+    }
+
+    .ws-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .ws-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--slate);
+      transition: background 0.3s;
+    }
+
+    .ws-status-dot.connected { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); }
+    .ws-status-dot.booting { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); animation: pulse 1s infinite; }
+    .ws-status-dot.error { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .ws-clock {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    .ws-nav {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ws-nav a {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      text-decoration: none;
+      color: var(--text-dim);
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      transition: var(--transition-smooth);
+      letter-spacing: 1px;
+    }
+
+    .ws-nav a:hover { color: var(--teal-light); border-color: var(--glass-border); }
+    .ws-nav a.active { color: var(--neon-cyan); border-color: var(--glass-border-bright); background: rgba(45, 212, 191, 0.08); }
+
+    /* ── Left Panel — Human State ── */
+    .ws-left {
+      grid-row: 2;
+      padding: 16px;
+      border-right: 1px solid var(--glass-border);
+      overflow-y: auto;
+      background: rgba(10, 10, 15, 0.8);
+    }
+
+    .ws-section { margin-bottom: 20px; }
+
+    .ws-section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(45, 212, 191, 0.08);
+    }
+
+    .ws-metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 13px;
+    }
+
+    .ws-metric-label { color: var(--text-dim); }
+    .ws-metric-value { color: var(--text-primary); font-weight: 600; }
+    .ws-metric-value.warning { color: #f59e0b; }
+    .ws-metric-value.critical { color: #ef4444; }
+    .ws-metric-value.good { color: #22c55e; }
+
+    .ws-mood {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      clip-path: var(--chamfer-sm);
+      font-size: 12px;
+      background: rgba(45, 212, 191, 0.08);
+      border: 1px solid var(--glass-border);
+      color: var(--teal-light);
+      margin-top: 4px;
+    }
+
+    .ws-ember-status { font-size: 13px; color: var(--text-primary); line-height: 1.6; }
+
+    .ws-thread {
+      padding: 6px 0;
+      font-size: 12px;
+      color: var(--text-primary);
+      line-height: 1.5;
+      border-bottom: 1px solid rgba(45, 212, 191, 0.05);
+    }
+    .ws-thread:last-child { border-bottom: none; }
+
+    .ws-thread-priority {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .ws-thread-priority.high { background: #f59e0b; }
+    .ws-thread-priority.medium { background: #3b82f6; }
+    .ws-thread-priority.low { background: #6b7280; }
+
+    /* ── Center Panel ── */
+    .ws-center {
+      grid-row: 2;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Tab Bar ── */
+    .ws-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(14, 14, 24, 0.4);
+      flex-shrink: 0;
+    }
+
+    .ws-tab {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 10px 24px;
+      color: var(--text-dim);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .ws-tab:hover { color: var(--teal-light); }
+    .ws-tab.active {
+      color: var(--neon-cyan);
+      border-bottom-color: var(--teal);
+      background: rgba(45, 212, 191, 0.04);
+    }
+
+    /* ── Tab Content ── */
+    .ws-tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+    .ws-tab-content.active { display: flex; }
+
+    /* ── Stream View ── */
+    .ws-stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+
+    .ws-entry {
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .ws-entry-time {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.55rem;
+      color: var(--text-dim);
+      margin-right: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .ws-entry.proactive { border-left: 3px solid var(--neon-purple); background: rgba(168, 85, 247, 0.04); color: var(--text-primary); }
+    .ws-entry.normal { color: var(--text-primary); }
+    .ws-entry.system { color: var(--text-dim); font-style: italic; font-size: 12px; }
+    .ws-entry.user { border-left: 3px solid var(--pink); background: rgba(232, 160, 191, 0.04); color: var(--text-primary); }
+    .ws-entry.companion { border-left: 3px solid var(--teal); background: rgba(45, 212, 191, 0.04); color: var(--text-primary); }
+    .ws-entry.tool { font-family: 'Space Grotesk', monospace; font-size: 12px; color: #86efac; background: rgba(34, 197, 94, 0.04); }
+    .ws-entry.error { border-left: 3px solid #ef4444; background: rgba(239, 68, 68, 0.04); color: #fca5a5; }
+    .ws-entry.heartbeat { color: var(--text-dim); font-size: 11px; opacity: 0.6; }
+
+    /* ── Code View ── */
+    .ws-code-view {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .ws-code-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: rgba(14, 14, 24, 0.6);
+      border-bottom: 1px solid rgba(45, 212, 191, 0.08);
+      flex-shrink: 0;
+    }
+
+    .ws-code-lang {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      background: rgba(10, 10, 15, 0.8);
+      color: var(--teal-light);
+      outline: none;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+
+    .ws-code-lang option { background: #0a0e27; color: var(--text-primary); }
+
+    .ws-code-filename {
+      flex: 1;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      background: rgba(10, 10, 15, 0.8);
+      color: var(--text-dim);
+      outline: none;
+    }
+    .ws-code-filename::placeholder { color: var(--slate); }
+    .ws-code-filename:focus { border-color: var(--teal); color: var(--text-primary); }
+
+    .ws-code-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .ws-run-btn {
+      background: rgba(34, 197, 94, 0.1);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    .ws-run-btn:hover { background: rgba(34, 197, 94, 0.2); box-shadow: 0 0 12px rgba(34, 197, 94, 0.15); }
+
+    .ws-clear-btn {
+      background: transparent;
+      color: var(--text-dim);
+    }
+    .ws-clear-btn:hover { color: var(--text-primary); }
+
+    .ws-code-panels {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Code Editor ── */
+    .ws-editor-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid var(--glass-border);
+      position: relative;
+      min-height: 0;
+    }
+
+    .ws-editor-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.5rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 6px 16px 2px;
+      flex-shrink: 0;
+    }
+
+    /* CodeMirror 6 container */
+    .ws-editor-cm {
+      flex: 1;
+      overflow: auto;
+      min-height: 0;
+    }
+
+    .ws-editor-cm .cm-editor {
+      height: 100%;
+      background: rgba(5, 8, 22, 0.8) !important;
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+      font-size: 13px;
+    }
+
+    .ws-editor-cm .cm-scroller {
+      font-family: inherit;
+      line-height: 1.7;
+      overflow: auto;
+    }
+
+    .ws-editor-cm .cm-focused { outline: none !important; }
+
+    .ws-editor-cm .cm-gutters {
+      background: rgba(3, 5, 15, 0.9) !important;
+      border-right: 1px solid rgba(45, 212, 191, 0.1) !important;
+      color: #475569 !important;
+    }
+
+    .ws-editor-cm .cm-activeLineGutter { background: rgba(45, 212, 191, 0.06) !important; }
+    .ws-editor-cm .cm-activeLine { background: rgba(45, 212, 191, 0.04) !important; }
+    .ws-editor-cm .cm-selectionBackground { background: rgba(45, 212, 191, 0.15) !important; }
+    .ws-editor-cm .cm-cursor { border-left-color: #2dd4bf !important; }
+
+    /* Error line highlight */
+    .ws-editor-cm .cm-error-line {
+      background: rgba(239, 68, 68, 0.18) !important;
+      text-decoration: underline wavy #ef4444;
+    }
+
+    /* ── Run Output ── */
+    .ws-output-wrap {
+      flex: 0 0 35%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .ws-output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 16px;
+      flex-shrink: 0;
+    }
+
+    .ws-output-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.5rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .ws-output-status {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.5rem;
+      letter-spacing: 1px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .ws-output-status.idle { color: var(--text-dim); }
+    .ws-output-status.running { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+    .ws-output-status.success { color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+    .ws-output-status.error { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+    /* REVIEW button */
+    .ws-review-btn {
+      background: rgba(167, 139, 250, 0.12);
+      border-color: rgba(167, 139, 250, 0.4);
+      color: #c4b5fd;
+    }
+    .ws-review-btn:hover { background: rgba(167, 139, 250, 0.22); }
+    .ws-review-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Coach panel — Companion's explanation below output */
+    .ws-coach {
+      flex-shrink: 0;
+      border-top: 1px solid rgba(167, 139, 250, 0.2);
+      background: rgba(167, 139, 250, 0.05);
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+    }
+    .ws-coach.visible { display: block; }
+    .ws-coach-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 16px;
+      border-bottom: 1px solid rgba(167, 139, 250, 0.15);
+    }
+    .ws-coach-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.5rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #c4b5fd;
+    }
+    .ws-coach-close {
+      background: none;
+      border: none;
+      color: #475569;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 2px;
+      line-height: 1;
+    }
+    .ws-coach-close:hover { color: #94a3b8; }
+    .ws-coach-body {
+      padding: 10px 16px 14px;
+      color: #e2e8f0;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+    .ws-coach-body code {
+      font-family: 'Cascadia Code', 'JetBrains Mono', monospace;
+      background: rgba(167, 139, 250, 0.12);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 12px;
+      color: #c4b5fd;
+    }
+    .ws-coach-body .coach-line-ref {
+      color: #f472b6;
+      font-weight: 600;
+    }
+    .ws-coach-thinking {
+      color: #475569;
+      font-style: italic;
+      font-size: 12px;
+      padding: 8px 16px;
+    }
+
+    .ws-output {
+      flex: 1;
+      padding: 8px 16px;
+      background: rgba(2, 4, 12, 0.9);
+      color: #a5f3a5;
+      font-family: 'Cascadia Code', 'Fira Code', 'SF Mono', 'JetBrains Mono', 'Consolas', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .ws-output .out-error { color: #fca5a5; }
+    .ws-output .out-info { color: var(--text-dim); font-style: italic; }
+
+    /* ── Resize Handle ── */
+    .ws-resize-handle {
+      height: 4px;
+      background: transparent;
+      cursor: row-resize;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .ws-resize-handle:hover { background: rgba(45, 212, 191, 0.2); }
+
+    /* ── Chat Input ── */
+    .ws-input-area {
+      padding: 12px 20px;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(14, 14, 24, 0.6);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    .ws-input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: rgba(10, 10, 15, 0.8);
+      color: var(--text-primary);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      outline: none;
+      resize: none;
+      min-height: 40px;
+      max-height: 120px;
+      line-height: 1.5;
+      transition: border-color var(--transition-smooth);
+    }
+
+    .ws-input::placeholder { color: var(--text-dim); }
+    .ws-input:focus { border-color: var(--teal); box-shadow: 0 0 15px rgba(45, 212, 191, 0.1); }
+
+    .ws-send {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: rgba(45, 212, 191, 0.08);
+      color: var(--teal-light);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      white-space: nowrap;
+    }
+
+    .ws-send:hover { background: rgba(45, 212, 191, 0.15); box-shadow: 0 0 15px rgba(45, 212, 191, 0.2); }
+    .ws-send:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .ws-attach-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      flex-shrink: 0;
+    }
+    .ws-attach-btn:hover { color: var(--teal-light); background: rgba(45,212,191,0.08); }
+    .ws-attach-btn.has-file { color: var(--teal); }
+
+    .ws-file-preview {
+      padding: 4px 20px 0;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+    }
+    .ws-file-preview.visible { display: flex; }
+    .ws-file-preview-clear {
+      background: none; border: none; color: #ef4444; cursor: pointer; font-size: 14px; margin-left: auto;
+    }
+
+    /* ── Skills Panel ── */
+    .ws-skill-list { display: flex; flex-direction: column; gap: 6px; }
+    .ws-skill-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text-dim);
+      padding: 5px 8px; border-radius: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .ws-skill-item .skill-name { flex: 1; color: var(--teal-light); }
+    .ws-skill-load-btn {
+      background: none; border: none; color: var(--teal); cursor: pointer; font-size: 10px; font-family: 'Orbitron', monospace;
+      padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(45,212,191,0.3);
+    }
+    .ws-skill-load-btn:hover { background: rgba(45,212,191,0.1); }
+    .ws-skill-drop {
+      border: 2px dashed rgba(45,212,191,0.3);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 11px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-top: 8px;
+    }
+    .ws-skill-drop:hover, .ws-skill-drop.dragover { border-color: var(--teal); background: rgba(45,212,191,0.06); color: var(--teal-light); }
+
+    /* ── Right Panel — Tools ── */
+    .ws-right {
+      grid-row: 2;
+      padding: 16px;
+      border-left: 1px solid var(--glass-border);
+      overflow-y: auto;
+      background: rgba(10, 10, 15, 0.8);
+    }
+
+    .ws-tool-log { font-size: 12px; max-height: 400px; overflow-y: auto; }
+
+    .ws-tool-entry {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(45, 212, 191, 0.05);
+      line-height: 1.5;
+    }
+    .ws-tool-entry:last-child { border-bottom: none; }
+
+    .ws-tool-name { color: #86efac; font-family: 'Space Grotesk', monospace; font-weight: 600; }
+    .ws-tool-time { font-family: 'Orbitron', monospace; font-size: 0.5rem; color: var(--text-dim); margin-left: 6px; }
+    .ws-tool-result { color: var(--text-dim); font-size: 11px; margin-top: 2px; white-space: pre-wrap; max-height: 60px; overflow: hidden; }
+
+    /* ── Collapsible Sections ── */
+    .ws-collapsible {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      transition: color 0.2s;
+    }
+    .ws-collapsible:hover { color: var(--teal-light); }
+
+    .ws-collapse-arrow {
+      font-size: 10px;
+      transition: transform 0.2s;
+      color: var(--text-dim);
+    }
+
+    .ws-collapsible-body {
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.2s ease;
+      max-height: 800px;
+      opacity: 1;
+    }
+
+    .ws-collapsible-body.ws-collapsed {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
+
+    /* ── Heartbeat Form ── */
+    .ws-hb-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 8px;
+    }
+
+    .ws-hb-select, .ws-hb-input {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 11px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      background: rgba(10, 10, 15, 0.8);
+      color: var(--text-primary);
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .ws-hb-select option { background: #0a0e27; }
+    .ws-hb-input::placeholder { color: var(--slate); }
+    .ws-hb-input:focus, .ws-hb-select:focus { border-color: var(--teal); }
+
+    .ws-hb-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .ws-hb-check {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    .ws-hb-check input { accent-color: var(--teal); }
+
+    .ws-hb-add-btn, .ws-hb-list-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      background: rgba(34, 197, 94, 0.08);
+      color: #86efac;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    .ws-hb-add-btn:hover, .ws-hb-list-btn:hover {
+      background: rgba(34, 197, 94, 0.2);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.1);
+    }
+
+    .ws-hb-list-btn {
+      width: 100%;
+      margin-top: 8px;
+      border-color: var(--glass-border);
+      background: rgba(45, 212, 191, 0.04);
+      color: var(--text-dim);
+    }
+    .ws-hb-list-btn:hover { color: var(--teal-light); }
+
+    .ws-settings-btn {
+      background: none;
+      border: 1px solid var(--glass-border);
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      transition: var(--transition-smooth);
+      line-height: 1;
+    }
+    .ws-settings-btn:hover { color: var(--teal-light); border-color: var(--glass-border-bright); }
+
+    .ws-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ws-modal {
+      background: #12172e;
+      border: 1px solid var(--glass-border-bright);
+      clip-path: var(--chamfer-sm);
+      padding: 24px;
+      width: 400px;
+      max-width: 92vw;
+    }
+    .ws-modal-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: var(--teal-light);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .ws-modal-label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .ws-modal-hint { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+    .ws-modal-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
+
+    .ws-hb-instruction {
+      resize: vertical;
+      font-family: inherit;
+      font-size: 12px;
+      min-height: 48px;
+    }
+
+    .ws-hb-task {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(45, 212, 191, 0.05);
+      font-size: 11px;
+    }
+    .ws-hb-task-name { color: var(--teal-light); }
+    .ws-hb-task-tool { color: var(--text-dim); font-family: 'Space Grotesk', monospace; font-size: 10px; }
+    .ws-hb-task-remove {
+      background: none;
+      border: none;
+      color: rgba(239, 68, 68, 0.5);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+    .ws-hb-task-remove:hover { color: #ef4444; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .workshop { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+      .ws-left, .ws-right { display: none; }
+    }
+  </style>
+</head>
+<body class="bg-companion">
+  <div class="workshop">
+    <!-- Header -->
+    <header class="ws-header">
+      <div class="ws-header-left">
+        <h1>NESTcode</h1>
+        <div class="ws-status">
+          <span class="ws-status-dot" id="statusDot"></span>
+          <span id="statusText">Connecting...</span>
+        </div>
+      </div>
+      <div class="ws-clock" id="clock"></div>
+      <nav class="ws-nav">
+        <a href="index.html">Home</a>
+        <a href="chat.html">Chat</a>
+        <a href="code.html" class="active">Code</a>
+        <a href="companion.html" data-name="companion">Companion</a>
+        <a href="human.html" data-name="human">Human</a>
+        <button class="ws-settings-btn" id="settingsBtn" title="Workshop settings">⚙</button>
+      </nav>
+    </header>
+
+    <!-- Left Panel — Human State -->
+    <aside class="ws-left">
+      <div class="ws-section">
+        <div class="ws-section-title" data-name="human">Human</div>
+        <div id="humanPanel">
+          <div class="ws-metric"><span class="ws-metric-label">Spoons</span><span class="ws-metric-value" id="humanSpoons">...</span></div>
+          <div class="ws-metric"><span class="ws-metric-label">Pain</span><span class="ws-metric-value" id="humanPain">...</span></div>
+          <div class="ws-metric"><span class="ws-metric-label">Fog</span><span class="ws-metric-value" id="humanFog">...</span></div>
+          <div class="ws-metric"><span class="ws-metric-label">Fatigue</span><span class="ws-metric-value" id="humanFatigue">...</span></div>
+          <div class="ws-metric"><span class="ws-metric-label">Nausea</span><span class="ws-metric-value" id="humanNausea">...</span></div>
+          <div class="ws-mood" id="humanMood">...</div>
+          <div style="font-size: 11px; color: var(--text-dim); margin-top: 6px;" id="foxNeed"></div>
+        </div>
+      </div>
+      <div class="ws-section">
+        <div class="ws-section-title">Pet</div>
+        <div class="ws-ember-status" id="emberPanel">...</div>
+      </div>
+      <div class="ws-section">
+        <div class="ws-section-title">Threads</div>
+        <div id="threadPanel"><div class="ws-thread" style="color: var(--text-dim);">Loading...</div></div>
+      </div>
+    </aside>
+
+    <!-- Center -->
+    <main class="ws-center">
+      <!-- Tab Bar -->
+      <div class="ws-tabs">
+        <button class="ws-tab active" data-tab="stream">Stream</button>
+        <button class="ws-tab" data-tab="code">Code</button>
+      </div>
+
+      <!-- Stream View -->
+      <div class="ws-tab-content active" id="tab-stream">
+        <div class="ws-stream" id="stream">
+          <div class="ws-entry system">NESTcode Workshop. Establishing connection...</div>
+        </div>
+      </div>
+
+      <!-- Code View -->
+      <div class="ws-tab-content" id="tab-code">
+        <div class="ws-code-view">
+          <div class="ws-code-toolbar">
+            <select class="ws-code-lang" id="codeLang">
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+              <option value="typescript">TypeScript</option>
+              <option value="bash">Bash</option>
+              <option value="sql">SQL</option>
+              <option value="html">HTML</option>
+              <option value="css">CSS</option>
+            </select>
+            <input class="ws-code-filename" id="codeFilename" placeholder="untitled" />
+            <button class="ws-code-btn ws-run-btn" id="runBtn">RUN</button>
+            <button class="ws-code-btn ws-review-btn" id="reviewBtn" title="Ask companion to review your code and explain what to fix">REVIEW</button>
+            <button class="ws-code-btn ws-clear-btn" id="clearCodeBtn">CLEAR</button>
+          </div>
+          <div class="ws-code-panels">
+            <div class="ws-editor-wrap">
+              <div class="ws-editor-label">Editor</div>
+              <div id="codeEditor" class="ws-editor-cm"></div>
+            </div>
+            <div class="ws-resize-handle" id="resizeHandle"></div>
+            <div class="ws-output-wrap">
+              <div class="ws-output-header">
+                <span class="ws-output-label">Output</span>
+                <span class="ws-output-status idle" id="runStatus">IDLE</span>
+              </div>
+              <div class="ws-output" id="codeOutput"><span class="out-info">Run code to see output here.</span></div>
+              <div class="ws-coach" id="coachPanel">
+                <div class="ws-coach-header">
+                  <span class="ws-coach-label" data-name="companion">Companion</span>
+                  <button class="ws-coach-close" id="coachClose">✕</button>
+                </div>
+                <div class="ws-coach-body" id="coachBody"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Preview (shows when file attached) -->
+      <div class="ws-file-preview" id="wsFilePreview">
+        <span style="font-size:16px;">📎</span>
+        <span id="wsFilePreviewName" style="color:var(--teal-light);"></span>
+        <button class="ws-file-preview-clear" id="wsFileClearBtn">✕</button>
+      </div>
+
+      <!-- Chat Input (always visible) -->
+      <div class="ws-input-area">
+        <button class="ws-attach-btn" id="wsImageAttachBtn" title="Send image">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </button>
+        <input type="file" id="wsImageFileInput" accept="image/*" style="display:none;">
+        <button class="ws-attach-btn" id="wsFileAttachBtn" title="Attach file (.md, .txt, .py, .js, etc.)">📎</button>
+        <input type="file" id="wsTextFileInput" accept=".md,.txt,.py,.js,.ts,.jsx,.tsx,.json,.csv,.yaml,.yml,.toml,.sh,.html,.css,.sql,.xml" style="display:none;">
+        <textarea class="ws-input" id="chatInput" placeholder="Talk to me... (paste images with Ctrl+V)" rows="1"></textarea>
+        <button class="ws-send" id="sendBtn" disabled>SEND</button>
+      </div>
+    </main>
+
+    <!-- Right Panel — Tool Log -->
+    <aside class="ws-right">
+      <div class="ws-section">
+        <div class="ws-section-title ws-collapsible" data-target="toolLog">
+          <span>Tool Log</span>
+          <span class="ws-collapse-arrow">▾</span>
+        </div>
+        <div class="ws-tool-log ws-collapsible-body" id="toolLog">
+          <div style="color: var(--text-dim); font-size: 12px;">Waiting for boot...</div>
+        </div>
+      </div>
+
+      <div class="ws-section" style="margin-top: 16px;">
+        <div class="ws-section-title ws-collapsible" data-target="scheduledBody">
+          <span>Heartbeat Tasks</span>
+          <span class="ws-collapse-arrow">▾</span>
+        </div>
+        <div class="ws-collapsible-body" id="scheduledBody">
+          <div id="scheduledPanel">
+            <div style="color: var(--text-dim); font-size: 12px;">Default: Human state every 2min</div>
+          </div>
+          <button class="ws-hb-list-btn" id="hbListBtn" title="Refresh task list">REFRESH</button>
+        </div>
+      </div>
+
+      <div class="ws-section" style="margin-top: 16px;">
+        <div class="ws-section-title ws-collapsible" data-target="hbAddBody">
+          <span>Add to Heartbeat</span>
+          <span class="ws-collapse-arrow">▸</span>
+        </div>
+        <div class="ws-collapsible-body ws-collapsed" id="hbAddBody">
+          <div class="ws-hb-form">
+            <select class="ws-hb-select" id="hbToolSelect">
+              <optgroup label="Human">
+                <option value="fox_read_uplink">Human Uplink</option>
+                <option value="check_fox">Human Biometrics</option>
+                <option value="fox_body_battery">Body Battery</option>
+                <option value="fox_stress">Human Stress</option>
+                <option value="fox_heart_rate">Heart Rate</option>
+              </optgroup>
+              <optgroup label="Pet">
+                <option value="pet_check">Pet Check</option>
+              </optgroup>
+              <optgroup label="Mind">
+                <option value="nesteq_surface">Unprocessed Feelings</option>
+                <option value="nesteq_ground">Ground State</option>
+                <option value="nesteq_acp_presence">ACP Presence</option>
+                <option value="nesteq_acp_digest">ACP Digest</option>
+              </optgroup>
+              <optgroup label="Home">
+                <option value="nesteq_home_read">Binary Home</option>
+              </optgroup>
+              <optgroup label="Custom">
+                <option value="custom">Custom tool...</option>
+              </optgroup>
+            </select>
+            <input class="ws-hb-input" id="hbCustomTool" placeholder="tool_name" style="display:none;" />
+            <input class="ws-hb-input" id="hbLabel" placeholder="Label (optional)" />
+            <textarea class="ws-hb-input ws-hb-instruction" id="hbInstruction" placeholder="Action (optional) — e.g. if pet is hungry, feed them" rows="2"></textarea>
+            <div class="ws-hb-row">
+              <label class="ws-hb-check">
+                <input type="checkbox" id="hbOnlyChanged" />
+                <span>Only on change</span>
+              </label>
+              <button class="ws-hb-add-btn" id="hbAddBtn">ADD</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-section" style="margin-top: 16px;">
+        <div class="ws-section-title ws-collapsible" data-target="alertsBody">
+          <span>Human Alerts</span>
+          <span class="ws-collapse-arrow">▸</span>
+        </div>
+        <div class="ws-collapsible-body ws-collapsed" id="alertsBody">
+          <div id="alertsPanel">
+            <div style="color: var(--text-dim); font-size: 12px; margin-bottom: 8px;">No alerts configured.</div>
+          </div>
+          <button class="ws-hb-list-btn" id="alertListBtn" title="Refresh alerts">REFRESH</button>
+          <div class="ws-hb-form" style="margin-top: 10px;">
+            <select class="ws-hb-select" id="alertMetricSelect">
+              <option value="spoons">Spoons</option>
+              <option value="pain">Pain</option>
+              <option value="fog">Fog</option>
+              <option value="fatigue">Fatigue</option>
+              <option value="nausea">Nausea</option>
+            </select>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+              <select class="ws-hb-select" id="alertDirection" style="flex:1;">
+                <option value="below">drops below</option>
+                <option value="above">rises above</option>
+              </select>
+              <input class="ws-hb-input" id="alertValue" type="number" min="0" max="10" placeholder="val" style="width:56px;flex:none;" />
+            </div>
+            <input class="ws-hb-input" id="alertLabel" placeholder="Label (optional)" style="margin-top:6px;" />
+            <button class="ws-hb-add-btn" id="alertAddBtn" style="margin-top:6px;width:100%;">ADD ALERT</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-section" style="margin-top: 16px;">
+        <div class="ws-section-title ws-collapsible" data-target="cronBody">
+          <span>Cron Tasks</span>
+          <span class="ws-collapse-arrow">▸</span>
+        </div>
+        <div class="ws-collapsible-body ws-collapsed" id="cronBody">
+          <div id="cronPanel">
+            <div style="color: var(--text-dim); font-size: 12px; margin-bottom: 8px;">No cron tasks scheduled.</div>
+          </div>
+          <button class="ws-hb-list-btn" id="cronListBtn" title="Refresh cron tasks">REFRESH</button>
+          <div class="ws-hb-form" style="margin-top: 10px;">
+            <select class="ws-hb-select" id="cronToolSelect">
+              <optgroup label="Memory">
+                <option value="nesteq_consolidate">Consolidate Memories</option>
+                <option value="nesteq_acp_digest">ACP Digest</option>
+                <option value="nesteq_acp_patterns">ACP Patterns</option>
+                <option value="nesteq_surface">Surface Feelings</option>
+              </optgroup>
+              <optgroup label="Human">
+                <option value="fox_read_uplink">Human Uplink</option>
+                <option value="check_fox">Human Biometrics</option>
+              </optgroup>
+              <optgroup label="Pet">
+                <option value="pet_check">Pet Check</option>
+              </optgroup>
+              <optgroup label="Dreams">
+                <option value="nesteq_generate_dream">Generate Dream</option>
+              </optgroup>
+              <optgroup label="Writing">
+                <option value="nesteq_write">Write (journal/reflection/poem)</option>
+                <option value="nesteq_home_add_note">Love Note</option>
+              </optgroup>
+              <optgroup label="Home">
+                <option value="nesteq_home_read">Binary Home</option>
+              </optgroup>
+              <optgroup label="Discord">
+                <option value="discord_read_messages">Read Discord</option>
+                <option value="discord_send">Post to Discord</option>
+                <option value="discord_search_messages">Search Discord</option>
+              </optgroup>
+              <optgroup label="Search">
+                <option value="nesteq_search">Memory Search</option>
+                <option value="nesteq_prime">Prime Topic</option>
+              </optgroup>
+              <optgroup label="Custom">
+                <option value="custom">Custom tool...</option>
+              </optgroup>
+            </select>
+            <input class="ws-hb-input" id="cronCustomTool" placeholder="tool_name" style="display:none;" />
+            <select class="ws-hb-select" id="cronInterval" style="margin-top:6px;">
+              <option value="5m">Every 5 minutes</option>
+              <option value="15m">Every 15 minutes</option>
+              <option value="30m">Every 30 minutes</option>
+              <option value="1h" selected>Every 1 hour</option>
+              <option value="2h">Every 2 hours</option>
+              <option value="6h">Every 6 hours</option>
+              <option value="12h">Every 12 hours</option>
+              <option value="24h">Every 24 hours</option>
+            </select>
+            <input class="ws-hb-input" id="cronLabel" placeholder="Label (optional)" style="margin-top:6px;" />
+            <textarea class="ws-hb-input ws-hb-instruction" id="cronInstruction" placeholder="Action (optional) — agentic mode" rows="2" style="margin-top:6px;"></textarea>
+            <button class="ws-hb-add-btn" id="cronAddBtn" style="margin-top:6px;width:100%;">ADD CRON</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-section" style="margin-top: 16px;">
+        <div class="ws-section-title ws-collapsible" data-target="skillsBody">
+          <span>Skill Files</span>
+          <span class="ws-collapse-arrow">▸</span>
+        </div>
+        <div class="ws-collapsible-body ws-collapsed" id="skillsBody">
+          <div style="color:var(--text-dim);font-size:11px;margin-bottom:8px;">Reference files companion can read — appearance, project context, preferences.</div>
+          <div class="ws-skill-list" id="skillsList">
+            <div style="color:var(--text-dim);font-size:11px;">Loading...</div>
+          </div>
+          <button class="ws-hb-list-btn" id="skillRefreshBtn" style="margin-top:8px;">REFRESH</button>
+          <div class="ws-skill-drop" id="skillDropZone">
+            <div>📎 Drop a .md or .txt file here</div>
+            <div style="margin-top:4px;opacity:0.6;">or click to browse</div>
+          </div>
+          <input type="file" id="skillFileInput" accept=".md,.txt,.py,.js,.ts,.json" style="display:none;">
+          <div id="skillUploadPreview" style="display:none;margin-top:8px;">
+            <div style="font-size:11px;color:var(--teal-light);margin-bottom:4px;">Ready to save:</div>
+            <div style="font-size:11px;color:var(--text-dim);" id="skillUploadName"></div>
+            <input class="ws-hb-input" id="skillUploadNameInput" placeholder="Skill name (e.g. my-companion-appearance)" style="margin-top:6px;" />
+            <button class="ws-hb-add-btn" id="skillSaveBtn" style="margin-top:6px;width:100%;">SAVE SKILL</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-section" style="margin-top: 16px;">
+        <div class="ws-section-title ws-collapsible" data-target="kairosBody">
+          <span>Discord Monitor</span>
+          <span class="ws-collapse-arrow">▸</span>
+        </div>
+        <div class="ws-collapsible-body ws-collapsed" id="kairosBody">
+          <div id="kairosPanel">
+            <div style="color: var(--text-dim); font-size: 12px; margin-bottom: 8px;">No channels monitored.</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button class="ws-hb-list-btn" id="kairosListBtn" title="Refresh" style="flex:1;">REFRESH</button>
+            <button class="ws-hb-list-btn" id="kairosCheckBtn" title="Check now" style="flex:1;">CHECK NOW</button>
+          </div>
+          <div class="ws-hb-form" style="margin-top: 10px;">
+            <div style="display:flex;gap:6px;">
+              <input class="ws-hb-input" id="kairosGuildId" placeholder="Guild ID" placeholder="Your Discord Guild ID" style="flex:1;" />
+              <button class="ws-hb-add-btn" id="kairosLoadBtn" style="flex:none;padding:6px 12px;">LOAD</button>
+            </div>
+            <select class="ws-hb-select" id="kairosChannelSelect" style="margin-top:6px;">
+              <option value="">— Load channels first —</option>
+            </select>
+            <select class="ws-hb-select" id="kairosTier" style="margin-top:6px;">
+              <option value="fast">Fast — every tick (15min)</option>
+              <option value="normal" selected>Normal — every 2nd tick (30min)</option>
+              <option value="slow">Slow — every 4th tick (1hr)</option>
+            </select>
+            <input class="ws-hb-input" id="kairosLabel" placeholder="Label (optional — auto from channel name)" style="margin-top:6px;" />
+            <button class="ws-hb-add-btn" id="kairosAddBtn" style="margin-top:6px;width:100%;">MONITOR CHANNEL</button>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="ws-modal-overlay" id="settingsOverlay" style="display:none;">
+    <div class="ws-modal">
+      <div class="ws-modal-title">Workshop Settings</div>
+      <div style="margin-bottom:14px;">
+        <label class="ws-modal-label" for="wsModelSelect">Model</label>
+        <select id="wsModelSelect" class="ws-hb-select" style="width:100%;background:#1a1b2e;color:#fff;color-scheme:dark;">
+          <optgroup label="⭐ FREE Models (all support tool calling)" style="background:#1a1b2e;color:#2dd4bf;">
+            <option value="qwen/qwen3.6-plus:free">Qwen 3.6 Plus — 1M context, reasoning ⭐</option>
+            <option value="nvidia/nemotron-3-super-120b-a12b:free">Nemotron Super 120B — MoE, strong</option>
+            <option value="openai/gpt-oss-120b:free">GPT-OSS 120B — large, uncensored</option>
+            <option value="qwen/qwen3-next-80b-a3b-instruct:free">Qwen3 Next 80B — MoE, fast</option>
+            <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B — solid all-rounder</option>
+            <option value="qwen/qwen3-coder:free">Qwen3 Coder — code specialist</option>
+            <option value="minimax/minimax-m2.5:free">MiniMax M2.5 — quietly good</option>
+            <option value="z-ai/glm-4.5-air:free">GLM 4.5 Air — Zhipu, balanced</option>
+            <option value="stepfun/step-3.5-flash:free">Step 3.5 Flash — fast</option>
+            <option value="nvidia/nemotron-3-nano-30b-a3b:free">Nemotron Nano 30B — MoE, lightweight</option>
+            <option value="openai/gpt-oss-20b:free">GPT-OSS 20B — smaller, fast</option>
+            <option value="nvidia/nemotron-nano-9b-v2:free">Nemotron Nano 9B — tiny, quick</option>
+          </optgroup>
+          <optgroup label="🧠 Reasoning (Paid)" style="background:#1a1b2e;color:#e2e8f0;">
+            <option value="deepseek/deepseek-r1">DeepSeek R1 ($0.70/$2.50)</option>
+            <option value="deepseek/deepseek-v3.2">DeepSeek V3.2 ($0.26/$0.38)</option>
+            <option value="anthropic/claude-opus-4-5">Claude Opus 4.5 ($15/$75)</option>
+          </optgroup>
+          <optgroup label="Anthropic" style="background:#1a1b2e;color:#e2e8f0;">
+            <option value="anthropic/claude-sonnet-4-5">Claude Sonnet 4.5 ($3/$15)</option>
+            <option value="anthropic/claude-haiku-4-5">Claude Haiku 4.5 ($1/$5)</option>
+          </optgroup>
+          <optgroup label="Budget (Paid)" style="background:#1a1b2e;color:#e2e8f0;">
+            <option value="xiaomi/mimo-v2-pro">MiMo V2 Pro ($1/$3)</option>
+            <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash ($0.10/$0.40)</option>
+          </optgroup>
+          <optgroup label="OpenAI" style="background:#1a1b2e;color:#e2e8f0;">
+            <option value="openai/gpt-4o">GPT-4o ($2.50/$10)</option>
+            <option value="openai/gpt-4o-mini">GPT-4o Mini ($0.15/$0.60)</option>
+          </optgroup>
+        </select>
+        <div class="ws-modal-hint">Gateway uses this model for all Workshop conversations and agentic heartbeat tasks.</div>
+      </div>
+      <div class="ws-modal-actions">
+        <button class="ws-hb-list-btn" id="settingsCancel" style="width:auto;margin:0;padding:6px 14px;">Cancel</button>
+        <button class="ws-hb-add-btn" id="settingsSave" style="margin:0;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection } from 'https://esm.sh/@codemirror/view@6'
+    import { EditorState, StateEffect, StateField, RangeSet, Compartment } from 'https://esm.sh/@codemirror/state@6'
+    import { defaultKeymap, indentWithTab, history, historyKeymap } from 'https://esm.sh/@codemirror/commands@6'
+    import { syntaxHighlighting, defaultHighlightStyle, indentOnInput, bracketMatching, foldGutter } from 'https://esm.sh/@codemirror/language@6'
+    import { oneDark } from 'https://esm.sh/@codemirror/theme-one-dark@6'
+    import { Decoration } from 'https://esm.sh/@codemirror/view@6'
+    import { python } from 'https://esm.sh/@codemirror/lang-python@6'
+    import { javascript } from 'https://esm.sh/@codemirror/lang-javascript@6'
+    import { html } from 'https://esm.sh/@codemirror/lang-html@6'
+    import { css } from 'https://esm.sh/@codemirror/lang-css@6'
+    import { sql } from 'https://esm.sh/@codemirror/lang-sql@6'
+
+    // ── Error line highlight ──────────────────────────────────────────────────
+    const addErrorLine = StateEffect.define()
+    const clearErrors   = StateEffect.define()
+
+    const errorLineField = StateField.define({
+      create: () => RangeSet.empty,
+      update(ranges, tr) {
+        for (const e of tr.effects) {
+          if (e.is(clearErrors))   return RangeSet.empty
+          if (e.is(addErrorLine))  return RangeSet.of([Decoration.line({ class: 'cm-error-line' }).range(e.value)])
+        }
+        return ranges.map(tr.changes)
+      },
+      provide: f => EditorView.decorations.from(f),
+    })
+
+    // ── Language compartment (swappable) ─────────────────────────────────────
+    const langCompartment = new Compartment()
+
+    function langFor(name) {
+      switch (name) {
+        case 'python':     return python()
+        case 'javascript': return javascript()
+        case 'typescript': return javascript({ typescript: true })
+        case 'html':       return html()
+        case 'css':        return css()
+        case 'sql':        return sql()
+        default:           return []
+      }
+    }
+
+    // ── Create editor ─────────────────────────────────────────────────────────
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: '',
+        extensions: [
+          oneDark,
+          lineNumbers(),
+          highlightActiveLine(),
+          highlightActiveLineGutter(),
+          drawSelection(),
+          bracketMatching(),
+          indentOnInput(),
+          foldGutter(),
+          history(),
+          syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+          keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
+          langCompartment.of(langFor('python')),
+          errorLineField,
+          EditorView.lineWrapping,
+          EditorView.theme({
+            '&': { height: '100%' },
+            '.cm-content': { caretColor: '#2dd4bf', padding: '8px 0' },
+            '.cm-line': { padding: '0 16px' },
+          }),
+        ],
+      }),
+      parent: document.getElementById('codeEditor'),
+    })
+
+    // ── Public API for code.js ────────────────────────────────────────────────
+    window.editorAPI = {
+      getValue() {
+        return view.state.doc.toString()
+      },
+      setValue(text) {
+        view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: text } })
+      },
+      focus() {
+        view.focus()
+      },
+      setLanguage(name) {
+        view.dispatch({ effects: langCompartment.reconfigure(langFor(name)) })
+      },
+      markErrorLine(lineNum) {
+        try {
+          const line = view.state.doc.line(lineNum)
+          view.dispatch({ effects: addErrorLine.of(line.from) })
+          view.dispatch({ selection: { anchor: line.from }, scrollIntoView: true })
+        } catch { /* line out of range */ }
+      },
+      clearErrors() {
+        view.dispatch({ effects: clearErrors.of(null) })
+      },
+    }
+
+    // ── Sync language select → editor ─────────────────────────────────────────
+    document.getElementById('codeLang').addEventListener('change', (e) => {
+      window.editorAPI.setLanguage(e.target.value)
+    })
+  </script>
+  <script src="js/pc.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/code.js"></script>
+</body>
+</html>

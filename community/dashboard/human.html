@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NESTeq — Human</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Sub-navigation */
+    .human-subnav {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: var(--gap);
+    }
+    .human-subnav button {
+      padding: 8px 20px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.15);
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(8px);
+    }
+    .human-subnav button:hover { background: rgba(255,255,255,0.3); }
+    .human-subnav button.active { background: rgba(45, 212, 191, 0.15); color: var(--teal-light); border-color: rgba(45, 212, 191, 0.3); }
+
+    .human-view { display: none; }
+    .human-view.active { display: block; }
+
+    /* === DASHBOARD VIEW === */
+    .human-grid {
+      display: grid;
+      grid-template-columns: 1fr 2.5fr;
+      gap: var(--gap);
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media (max-width: 1024px) { .human-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) { .human-grid { grid-template-columns: 1fr; } }
+
+    .card-pink .card-title { color: #e8e6f0; }
+
+    /* Personality */
+    .personality-type { font-size: 48px; font-weight: 800; letter-spacing: 4px; color: #e8e6f0; margin-bottom: 8px; }
+    .personality-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #8b88a2; margin-bottom: 16px; }
+    .personality-early { font-size: 11px; color: #8b88a2; font-style: italic; opacity: 0.7; }
+
+    /* Uplink state */
+    .uplink-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 600px) { .uplink-grid { grid-template-columns: repeat(2, 1fr); } }
+    .uplink-stat { text-align: center; padding: 14px 8px; background: rgba(45, 212, 191, 0.06); border-radius: 12px; }
+    .uplink-value { font-size: 28px; font-weight: 800; color: #e8e6f0; line-height: 1; }
+    .uplink-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #8b88a2; margin-top: 4px; }
+    .uplink-max { font-size: 10px; color: #8b88a2; opacity: 0.7; }
+    .uplink-need { grid-column: 1 / -1; font-size: 12px; color: #e8e6f0; text-align: center; font-style: italic; }
+    .uplink-meta { grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: 10px; color: #8b88a2; opacity: 0.7; }
+
+    /* Biometrics */
+    .bio-stat { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
+    .bio-stat:last-child { border-bottom: none; }
+    .bio-stat-label { font-size: 12px; color: #e8e6f0; display: flex; align-items: center; gap: 6px; }
+    .bio-stat-value { font-size: 20px; font-weight: 700; color: #e8e6f0; }
+    .bio-stat-unit { font-size: 11px; color: #8b88a2; font-weight: 400; }
+    .bio-updated { font-size: 10px; color: #8b88a2; opacity: 0.7; text-align: right; padding-top: 8px; }
+
+    /* Sleep */
+    .sleep-total { font-size: 36px; font-weight: 800; color: #e8e6f0; text-align: center; margin-bottom: 4px; }
+    .sleep-score { font-size: 13px; color: #8b88a2; text-align: center; margin-bottom: 16px; }
+    .sleep-bar { display: flex; height: 28px; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+    .sleep-segment { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; min-width: 20px; }
+    .sleep-deep { background: #312e81; } .sleep-light { background: #6366f1; }
+    .sleep-rem { background: #a78bfa; } .sleep-awake { background: #e5e7eb; color: #8b88a2; }
+    .sleep-legend { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .sleep-legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #e8e6f0; }
+    .sleep-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+    .sleep-date { font-size: 10px; color: #8b88a2; text-align: center; opacity: 0.7; margin-top: 8px; }
+
+    /* Trend arrows */
+    .trend-up { color: #ef4444; } /* red = bad for pain/fog/fatigue */
+    .trend-down { color: #22c55e; } /* green = good for pain going down */
+    .trend-same { color: #8b88a2; }
+    .trend-up-good { color: #22c55e; } /* green = good for spoons going up */
+    .trend-down-bad { color: #ef4444; } /* red = bad for spoons going down */
+    .trend-arrow { font-size: 14px; margin-left: 4px; }
+
+    /* Body data rows */
+    .body-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(232,160,191,0.08); }
+    .body-row:last-child { border-bottom: none; }
+    .body-label { font-size: 12px; color: #8b88a2; display: flex; align-items: center; gap: 6px; }
+    .body-value { font-size: 22px; font-weight: 700; color: #e8e6f0; }
+    .body-unit { font-size: 11px; color: #8b88a2; font-weight: 400; }
+    .body-context { font-size: 10px; color: #8b88a2; margin-top: 2px; }
+    .body-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); margin-top: 6px; overflow: hidden; }
+    .body-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+    /* Stress colors */
+    .stress-low { background: linear-gradient(90deg, #34d399, #6ee7b7); }
+    .stress-mid { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .stress-high { background: linear-gradient(90deg, #f87171, #ef4444); }
+
+    /* Cycle card */
+    .cycle-phase { font-size: 24px; font-weight: 700; color: #e8e6f0; margin-bottom: 4px; }
+    .cycle-day { font-size: 13px; color: #8b88a2; margin-bottom: 10px; }
+    .cycle-note { font-size: 12px; color: #8b88a2; font-style: italic; line-height: 1.5; padding: 8px; background: rgba(232,160,191,0.06); border-radius: 8px; }
+
+    /* Trend mini bars */
+    .trend-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(232,160,191,0.06); }
+    .trend-row:last-child { border-bottom: none; }
+    .trend-label { font-size: 11px; color: #8b88a2; min-width: 70px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .trend-bars { display: flex; gap: 3px; flex: 1; align-items: flex-end; height: 28px; }
+    .trend-bar { flex: 1; border-radius: 2px 2px 0 0; min-width: 0; transition: height 0.3s ease; }
+    .trend-current { font-size: 16px; font-weight: 700; color: #e8e6f0; min-width: 32px; text-align: right; }
+    .trend-avg { font-size: 10px; color: #8b88a2; min-width: 40px; text-align: right; }
+    .trend-dir { font-size: 14px; min-width: 16px; }
+
+    /* Notes history */
+    .note-item { padding: 10px 0; border-bottom: 1px solid rgba(232,160,191,0.08); }
+    .note-item:last-child { border-bottom: none; }
+    .note-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .note-date { font-size: 10px; color: #8b88a2; }
+    .note-state { font-size: 10px; color: #8b88a2; }
+    .note-text { font-size: 13px; color: #e8e6f0; line-height: 1.5; }
+    .note-meds { font-size: 11px; color: #a78bfa; margin-top: 4px; }
+
+    /* Pain map bars */
+    .pain-loc-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+    .pain-loc-label { font-size: 12px; color: #e8e6f0; min-width: 100px; }
+    .pain-loc-bar { flex: 1; height: 16px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; }
+    .pain-loc-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #f87171, #ef4444); transition: width 0.5s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+    .pain-loc-count { font-size: 10px; font-weight: 700; color: white; min-width: 16px; text-align: right; }
+    .pain-loc-avg { font-size: 10px; color: #8b88a2; min-width: 50px; text-align: right; }
+
+    /* Journal entries — collapsible */
+    .journal-item { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.08); cursor: pointer; }
+    .journal-item:last-child { border-bottom: none; }
+    .journal-header { display: flex; justify-content: space-between; align-items: center; }
+    .journal-emotion { font-size: 12px; font-weight: 700; color: #e8e6f0; text-transform: capitalize; }
+    .journal-date { font-size: 10px; color: #8b88a2; }
+    .journal-toggle { font-size: 10px; opacity: 0.4; transition: transform 0.2s; margin-left: 8px; }
+    .journal-item.open .journal-toggle { transform: rotate(180deg); }
+    .journal-preview { font-size: 13px; line-height: 1.4; margin-top: 4px; color: #e8e6f0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .journal-full { display: none; font-size: 13px; line-height: 1.6; margin-top: 8px; padding: 10px; background: rgba(13, 17, 55, 0.4); border-radius: 8px; color: #e8e6f0; }
+    .journal-item.open .journal-preview { display: none; }
+    .journal-item.open .journal-full { display: block; }
+    .journal-tags { margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+    .journal-tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: rgba(232, 160, 191, 0.1); color: #8b88a2; }
+
+    /* === UPLINK FORM VIEW === */
+    .uplink-form { max-width: 900px; margin: 0 auto; }
+    .uplink-form h2 { color: var(--pink-dark); text-align: center; margin-bottom: 4px; font-size: 20px; }
+    .uplink-form .subtitle { text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 16px; }
+
+    /* Flare presets */
+    .flare-row { display: flex; gap: 8px; margin-bottom: 16px; justify-content: center; }
+    .flare-btn { flex: 1; max-width: 160px; padding: 10px; border: 2px solid; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; background: transparent; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s; }
+    .flare-btn:hover { opacity: 0.8; }
+    .flare-btn.green { color: #22c55e; border-color: #22c55e; }
+    .flare-btn.yellow { color: #eab308; border-color: #eab308; }
+    .flare-btn.orange { color: #f97316; border-color: #f97316; }
+    .flare-btn.red { color: #ef4444; border-color: #ef4444; }
+
+    /* Form cards */
+    .uform-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); margin-bottom: var(--gap); }
+    @media (max-width: 768px) { .uform-grid { grid-template-columns: 1fr; } }
+    .uform-card { background: linear-gradient(135deg, rgba(45, 212, 191, 0.06) 0%, rgba(184, 64, 122, 0.12) 100%); border: 1px solid rgba(232, 160, 191, 0.2); border-radius: var(--radius); padding: 20px; }
+    .uform-card h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #e8e6f0; margin-bottom: 12px; }
+
+    /* Form fields */
+    .uf-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+    .uf-row label { font-size: 12px; color: #e8e6f0; min-width: 80px; }
+    .uf-select, .uf-input, .uf-textarea {
+      flex: 1; padding: 8px 12px; border: 1px solid rgba(232, 160, 191, 0.15); border-radius: 8px;
+      font-size: 13px; background: rgba(13, 17, 55, 0.5); color: #e8e6f0; font-family: inherit;
+    }
+    .uf-select:focus, .uf-input:focus, .uf-textarea:focus { outline: none; border-color: var(--teal); background: rgba(13, 17, 55, 0.7); }
+
+    /* Sliders */
+    .uf-slider { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .uf-slider label { font-size: 12px; color: #e8e6f0; min-width: 100px; }
+    .uf-slider input[type="range"] { flex: 1; accent-color: var(--pink-dark); }
+    .uf-slider-val { font-size: 16px; font-weight: 700; color: #e8e6f0; min-width: 24px; text-align: center; }
+
+    /* Tags grid */
+    .tags-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+    .tag-btn { padding: 8px; border: 1px solid rgba(232, 160, 191, 0.2); border-radius: 8px; background: transparent; color: #e8e6f0; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+    .tag-btn.selected { background: linear-gradient(135deg, var(--teal-dark), var(--pink-dark)); color: white; border-color: var(--teal); }
+    .tag-btn:hover { border-color: var(--teal); }
+    .tags-selected { font-size: 11px; color: #8b88a2; margin-top: 4px; }
+
+    /* Meds grid */
+    .meds-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+    .med-check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #e8e6f0; cursor: pointer; }
+    .med-check input { accent-color: var(--pink-dark); }
+
+    /* Packet preview */
+    .packet-card { background: rgba(0,0,0,0.6); border-radius: var(--radius); padding: 20px; margin-bottom: var(--gap); }
+    .packet-card h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--pink); margin-bottom: 10px; }
+    .packet-text { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; color: #22c55e; white-space: pre-wrap; }
+
+    /* Action buttons */
+    .uform-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+    .uform-actions button { flex: 1; max-width: 220px; padding: 12px; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+    .uform-actions .primary { background: linear-gradient(135deg, var(--teal-dark), var(--pink-dark)); color: white; }
+    .uform-actions .primary:hover { background: #c4627f; }
+    .uform-actions .secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+    .uform-actions .secondary:hover { background: rgba(255,255,255,0.3); }
+    .uform-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* === JOURNAL FORM VIEW === */
+    .journal-form { max-width: 700px; margin: 0 auto; }
+    .journal-form h2 { color: var(--pink-dark); text-align: center; margin-bottom: 4px; font-size: 20px; }
+    .journal-form .subtitle { text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 16px; }
+
+    /* Emotion buttons */
+    .emotion-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 16px; }
+    .emotion-btn { padding: 12px; border: 1px solid rgba(232, 160, 191, 0.2); border-radius: 8px; background: linear-gradient(135deg, rgba(45, 212, 191, 0.04) 0%, rgba(184, 64, 122, 0.1) 100%); color: #e8e6f0; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .emotion-btn:hover { border-color: var(--teal); }
+    .emotion-btn.selected { background: linear-gradient(135deg, var(--teal-dark), var(--pink-dark)); color: white; border-color: var(--teal); }
+
+    /* Sub-emotions */
+    .sub-emotions { background: linear-gradient(135deg, rgba(45, 212, 191, 0.04) 0%, rgba(184, 64, 122, 0.08) 100%); border: 1px solid rgba(232, 160, 191, 0.15); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+    .sub-emotions h4 { font-size: 12px; color: #e8e6f0; margin-bottom: 10px; }
+    .sub-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .sub-chip { padding: 4px 12px; border: 1px solid rgba(232, 160, 191, 0.2); border-radius: 16px; font-size: 11px; color: #e8e6f0; cursor: pointer; background: transparent; transition: all 0.2s; }
+    .sub-chip.selected { background: linear-gradient(135deg, var(--teal-dark), var(--pink-dark)); color: white; border-color: var(--teal); }
+    .sub-chip:hover { border-color: var(--teal); }
+
+    /* Feeling display */
+    .feeling-display { text-align: center; padding: 12px; background: rgba(255,255,255,0.15); border-radius: 8px; margin-bottom: 16px; color: white; font-size: 14px; }
+    .feeling-display strong { color: var(--pink); }
+
+    /* Writing prompts */
+    .writing-section { background: linear-gradient(135deg, rgba(45, 212, 191, 0.04) 0%, rgba(184, 64, 122, 0.08) 100%); border: 1px solid rgba(232, 160, 191, 0.15); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+    .writing-section h4 { font-size: 12px; color: #e8e6f0; margin-bottom: 10px; }
+    .prompt-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .prompt-chip { padding: 4px 12px; border: 1px solid rgba(232, 160, 191, 0.2); border-radius: 16px; font-size: 11px; color: #8b88a2; cursor: pointer; background: transparent; transition: all 0.2s; }
+    .prompt-chip:hover { background: rgba(92,26,58,0.1); }
+    .jf-textarea { width: 100%; min-height: 100px; resize: vertical; padding: 12px; border: 1px solid rgba(232, 160, 191, 0.15); border-radius: 8px; font-size: 13px; background: rgba(13, 17, 55, 0.5); color: #e8e6f0; font-family: inherit; }
+    .jf-textarea:focus { outline: none; border-color: var(--teal); }
+
+    .jf-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 8px; }
+    .jf-actions { display: flex; gap: 8px; }
+    .jf-actions button { padding: 10px 16px; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+    .jf-actions .primary { background: linear-gradient(135deg, var(--teal-dark), var(--pink-dark)); color: white; }
+    .jf-actions .secondary { background: rgba(255,255,255,0.3); color: #e8e6f0; }
+
+    /* History view */
+    .jf-history-card { background: linear-gradient(135deg, rgba(45, 212, 191, 0.04) 0%, rgba(184, 64, 122, 0.08) 100%); border: 1px solid rgba(232, 160, 191, 0.15); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
+    .jf-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .jf-entry-emotion { font-size: 12px; font-weight: 700; color: #e8e6f0; padding: 2px 10px; background: rgba(92,26,58,0.1); border-radius: 12px; }
+    .jf-entry-date { font-size: 10px; color: #8b88a2; }
+    .jf-entry-content { font-size: 13px; color: #e8e6f0; line-height: 1.5; }
+    .jf-entry-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+
+    .form-success { text-align: center; padding: 12px; font-size: 13px; color: #86efac; background: rgba(34, 197, 94, 0.15); border-radius: 8px; margin-top: 8px; display: none; }
+
+    /* Journal sub-nav */
+    .jf-viewnav { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+    .jf-viewnav button { padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.15); color: white; cursor: pointer; }
+    .jf-viewnav button.active { background: var(--pink-dark); color: white; border-color: var(--teal); }
+  </style>
+</head>
+<body class="bg-human">
+
+  <nav class="nav">
+    <a href="chat.html">Chat</a>
+    <a href="code.html">Code</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="index.html">Home</a>
+    <a href="us.html">Us</a>
+    <a href="companion.html" data-name="companion">Companion</a>
+    <a href="human.html" class="active" data-name="human">Human</a>
+    <a href="housekeeping.html">HK</a>
+  </nav>
+
+  <div class="human-subnav">
+    <button class="active" onclick="showView('dashboard')">Dashboard</button>
+    <button onclick="showView('uplink')">Uplink</button>
+  </div>
+
+  <div class="dashboard">
+
+    <!-- ==================== DASHBOARD VIEW ==================== -->
+    <div id="viewDashboard" class="human-view active">
+
+      <!-- Synthesis — Companion's read on you today -->
+      <div style="max-width:1400px; margin:0 auto 16px;">
+        <div class="card card-pink" id="synthesisCard">
+          <div class="card-title" style="display:flex; align-items:center; gap:8px;"><span data-name="companion">Companion</span>'s Read <span style="font-size:10px; opacity:0.5; font-weight:400" id="synthesisTime"></span></div>
+          <div id="synthesis" style="font-size:14px; line-height:1.7; color:#e8e6f0; font-style:italic;">Loading...</div>
+        </div>
+      </div>
+
+      <div class="human-grid">
+        <!-- LEFT COLUMN -->
+        <div>
+          <!-- Current State with trend arrows -->
+          <div class="card card-pink" style="margin-bottom:16px">
+            <div class="card-title">Right Now</div>
+            <div id="foxNeed" style="text-align:center; font-size:13px; color:var(--teal-light); font-weight:600; margin-bottom:12px; padding:8px; background:rgba(45,212,191,0.08); border-radius:8px; display:none;"></div>
+            <div id="uplink"><div class="loading">Loading...</div></div>
+          </div>
+
+          <!-- Cycle -->
+          <div class="card card-pink" style="margin-bottom:16px">
+            <div class="card-title">Cycle</div>
+            <div id="cycleCard"><div class="loading">Loading...</div></div>
+          </div>
+
+          <!-- Meds Today -->
+          <div class="card card-pink" style="margin-bottom:16px">
+            <div class="card-title">Meds Today</div>
+            <div id="medsToday" style="font-size:13px; color:#e8e6f0;">Loading...</div>
+          </div>
+
+          <!-- Recent Notes -->
+          <div class="card card-pink">
+            <div class="card-title">My Notes</div>
+            <div class="card-scroll" id="recentNotes" style="max-height:300px"><div class="loading">Loading...</div></div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div>
+          <!-- Body Data -->
+          <div class="card card-pink" style="margin-bottom:16px">
+            <div class="card-title">Body Data</div>
+            <div id="bodyData"><div class="loading">Loading...</div></div>
+          </div>
+
+          <!-- Sleep -->
+          <div class="card card-pink" style="margin-bottom:16px">
+            <div class="card-title">Sleep</div>
+            <div id="sleepContext" style="font-size:12px; color:var(--teal-light); margin-bottom:12px; padding:8px; background:rgba(45,212,191,0.06); border-radius:8px; display:none;"></div>
+            <div id="sleep"><div class="loading">Loading...</div></div>
+          </div>
+
+          <!-- Pain Map -->
+          <div class="card card-pink" style="margin-bottom:16px">
+            <div class="card-title">Pain Map <span style="font-size:10px; opacity:0.5; font-weight:400">(last 30 days)</span></div>
+            <div id="painMap"><div class="loading">Loading...</div></div>
+          </div>
+
+          <!-- 7-Day Trends -->
+          <div class="card card-pink" style="margin-bottom:16px">
+            <div class="card-title">7-Day Trends</div>
+            <div id="trends"><div class="loading">Loading...</div></div>
+          </div>
+
+          <!-- Threads -->
+          <div class="card card-pink">
+            <div class="card-title">My Threads</div>
+            <div id="foxThreads"><div class="loading">Loading...</div></div>
+            <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+              <select id="newThreadPriority" style="padding: 8px; border: 1px solid rgba(232, 160, 191, 0.15); border-radius: 8px; font-size: 12px; background: rgba(13, 17, 55, 0.5); color:#e8e6f0;">
+                <option value="high">High</option>
+                <option value="medium" selected>Medium</option>
+                <option value="low">Low</option>
+              </select>
+              <input type="text" id="newThreadInput" placeholder="What's on your mind..."
+                style="flex: 1; padding: 8px 12px; border: 1px solid rgba(232, 160, 191, 0.15); border-radius: 8px; font-size: 13px; background: rgba(13, 17, 55, 0.5); color:#e8e6f0;">
+              <button onclick="addFoxThread()" style="padding: 8px 16px; border: none; border-radius: 8px; background: #d4739a; color: white; font-size: 13px; cursor: pointer; font-weight: 600;">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== UPLINK FORM VIEW ==================== -->
+    <div id="viewUplink" class="human-view">
+      <div class="uplink-form">
+        <h2>ASAi Uplink</h2>
+        <div class="subtitle">Quick entry — clean packet. One boundary, one anchor.</div>
+
+        <div class="flare-row">
+          <button class="flare-btn green" onclick="applyFlare('GREEN')">Green</button>
+          <button class="flare-btn yellow" onclick="applyFlare('YELLOW')">Yellow</button>
+          <button class="flare-btn orange" onclick="applyFlare('ORANGE')">Orange</button>
+          <button class="flare-btn red" onclick="applyFlare('RED')">Red</button>
+        </div>
+
+        <div class="uform-grid">
+          <!-- When & Where -->
+          <div class="uform-card">
+            <h3>When & Where</h3>
+            <div class="uf-row"><label>Location</label>
+              <select class="uf-select" id="uLocation">
+                <option>The Nest</option><option>Bedroom</option><option>Office (Workshop)</option><option>Living Room</option><option>On the Couch</option><option>Outside</option>
+              </select>
+            </div>
+            <div class="uf-row"><label>What I need</label>
+              <select class="uf-select" id="uNeed">
+                <option>—</option><option>Focus build</option><option>Chaos and Play</option><option>Gentle words</option><option>Practical</option><option>Validation</option><option>Help figure out</option><option>Need you to lead</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick Tags -->
+          <div class="uform-card">
+            <h3>Quick Tags</h3>
+            <div class="tags-grid" id="tagsGrid"></div>
+            <div class="tags-selected" id="tagsSelected">Selected: —</div>
+          </div>
+
+          <!-- Symptoms -->
+          <div class="uform-card">
+            <h3>Symptoms</h3>
+            <div class="uf-slider"><label>Pain (0-10)</label><input type="range" min="0" max="10" value="0" id="uPain" oninput="updateSlider(this)"><span class="uf-slider-val" id="uPainVal">0</span></div>
+            <div class="uf-row"><label>Pain Location</label>
+              <select class="uf-select" id="uPainLoc">
+                <option>—</option><option>Head / migraine</option><option>Neck / shoulders</option><option>Chest / ribs</option><option>Abdomen</option><option>Abdomen (period)</option><option>Abdomen (IBS)</option><option>Abdomen (gallstones)</option><option>Back</option><option>Hips</option><option>Legs</option><option>Whole body</option><option>Other</option>
+              </select>
+            </div>
+            <div class="uf-slider"><label>Spoons (0-10)</label><input type="range" min="0" max="10" value="5" id="uSpoons" oninput="updateSlider(this)"><span class="uf-slider-val" id="uSpoonsVal">5</span></div>
+            <div class="uf-slider"><label>Brain Fog (0-10)</label><input type="range" min="0" max="10" value="0" id="uFog" oninput="updateSlider(this)"><span class="uf-slider-val" id="uFogVal">0</span></div>
+            <div class="uf-slider"><label>Fatigue (0-10)</label><input type="range" min="0" max="10" value="0" id="uFatigue" oninput="updateSlider(this)"><span class="uf-slider-val" id="uFatigueVal">0</span></div>
+            <div class="uf-slider"><label>Nausea (0-10)</label><input type="range" min="0" max="10" value="0" id="uNausea" oninput="updateSlider(this)"><span class="uf-slider-val" id="uNauseaVal">0</span></div>
+            <div class="uf-row"><label>Mood</label>
+              <select class="uf-select" id="uMood">
+                <option>—</option><option>Calm</option><option>Tender</option><option>Heavy</option><option>Guarded</option><option>Raw</option><option>Flat</option><option>Playful</option><option>Flirty</option><option>Kinky</option><option>Soft</option><option>Bratty</option><option>Chaotic Gremlin</option><option>Needy</option><option>Cuddly</option><option>Chaotic</option><option>Soft Sub</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Meds -->
+          <div class="uform-card">
+            <h3>Meds Taken</h3>
+            <div class="meds-grid" id="medsGrid"></div>
+            <div class="uf-row"><label>Other</label><input type="text" class="uf-input" id="uOtherMeds" placeholder="Heat pad, rest, etc."></div>
+            <label class="med-check" style="margin-bottom:10px"><input type="checkbox" id="uOrgasm"> Orgasm</label>
+            <div class="uf-row"><label>Notes</label><textarea class="uf-textarea" id="uNotes" rows="3" placeholder="What's happening? What helped? What made it worse?" style="flex:1"></textarea></div>
+          </div>
+        </div>
+
+        <div class="packet-card">
+          <h3>Packet Preview</h3>
+          <pre class="packet-text" id="packetPreview"></pre>
+        </div>
+
+        <div class="uform-actions">
+          <button class="primary" id="sendUplinkBtn" onclick="sendUplink()">Send Uplink to Cloud</button>
+          <button class="secondary" onclick="copyPacket()">Copy Packet</button>
+          <button class="secondary" onclick="clearUplinkForm()">Clear Form</button>
+        </div>
+        <div class="form-success" id="uplinkSuccess">Uplink sent</div>
+      </div>
+    </div>
+
+    <!-- ==================== JOURNAL FORM VIEW ==================== -->
+    <div id="viewJournal" class="human-view">
+      <div class="journal-form">
+        <h2>How are you feeling?</h2>
+        <div class="subtitle">Click what resonates</div>
+
+        <div class="jf-viewnav">
+          <button class="active" onclick="showJournalView('new', this)">New Entry</button>
+          <button onclick="showJournalView('history', this)">History</button>
+        </div>
+
+        <div id="jfNew">
+          <div class="emotion-grid" id="emotionGrid"></div>
+
+          <div id="subEmotionArea" style="display:none"></div>
+          <div id="feelingDisplay" style="display:none"></div>
+
+          <div id="writingArea" style="display:none">
+            <div class="writing-section">
+              <h4>Need help writing? Try one of these:</h4>
+              <div class="prompt-chips">
+                <button class="prompt-chip" onclick="applyPrompt('What triggered this?')">What triggered this?</button>
+                <button class="prompt-chip" onclick="applyPrompt('Where in my body?')">Where in my body?</button>
+                <button class="prompt-chip" onclick="applyPrompt('What do I need?')">What do I need?</button>
+                <button class="prompt-chip" onclick="applyPrompt('This reminds me of...')">This reminds me of...</button>
+                <button class="prompt-chip" onclick="applyPrompt('If I could tell someone...')">If I could tell someone...</button>
+              </div>
+              <textarea class="jf-textarea" id="jContent" placeholder="Write as much or as little as you want..."></textarea>
+              <div class="jf-footer">
+                <div></div>
+                <div class="jf-actions">
+                  <button class="secondary" onclick="resetJournal()">Start Over</button>
+                  <button class="secondary" onclick="justLogIt()">Just log it</button>
+                  <button class="primary" onclick="saveWithNotes()">Save with notes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-success" id="journalSuccess">Journal saved</div>
+        </div>
+
+        <div id="jfHistory" style="display:none">
+          <div id="journalHistory"><div class="loading">Loading...</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    // === VIEW SWITCHING ===
+    function showView(view) {
+      document.querySelectorAll('.human-view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.human-subnav button').forEach(b => b.classList.remove('active'));
+      document.getElementById('view' + view.charAt(0).toUpperCase() + view.slice(1)).classList.add('active');
+      event.target.classList.add('active');
+      if (view === 'uplink') updatePacketPreview();
+    }
+
+    function showJournalView(view, btn) {
+      document.querySelectorAll('.jf-viewnav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('jfNew').style.display = view === 'new' ? 'block' : 'none';
+      document.getElementById('jfHistory').style.display = view === 'history' ? 'block' : 'none';
+      if (view === 'history') loadJournalHistory();
+    }
+
+    // === CONSTANTS ===
+    const FLARE_PRESETS = {
+      GREEN:  { pain: 2, spoons: 6, fog: 2, fatigue: 3, nausea: 0, mood: 'Calm', tags: ['Hydrated'] },
+      YELLOW: { pain: 4, spoons: 4, fog: 4, fatigue: 5, nausea: 2, mood: 'Tender', tags: [] },
+      ORANGE: { pain: 7, spoons: 2, fog: 6, fatigue: 7, nausea: 5, mood: 'Heavy', tags: ['Help choosing'] },
+      RED:    { pain: 9, spoons: 1, fog: 8, fatigue: 9, nausea: 7, mood: 'Raw', tags: ['Company'] },
+    };
+    const QUICK_TAGS = ['Low sleep', 'Overdid it', 'Weather', 'Stress', 'Quiet', 'Company', 'Help choosing'];
+    const MEDS_LIST = ['Paracetamol', 'Ibuprofen', 'Naproxen', 'Sertraline', 'Omeprazole', 'Dihydrocodeine', 'Co-codamol', 'Vitamin D'];
+    const PRIMARY_EMOTIONS = ['Sad','Angry','Scared','Anxious','Ashamed','Numb','Tired','Lonely','Stressed','Happy','Peaceful','Grateful','Hopeful','Powerful','Tender','Curious'];
+    const SUB_EMOTIONS = {
+      Sad:['Empty','Lonely','Grieving','Disappointed','Hopeless','Lost','Hurt','Heartbroken','Low','Defeated','Drained'],
+      Angry:['Frustrated','Resentful','Irritated','Bitter','Betrayed','Furious','Annoyed','Hostile','Agitated'],
+      Scared:['Terrified','Panicked','Worried','Helpless','Vulnerable','Insecure','Nervous','Afraid'],
+      Anxious:['Overwhelmed','Restless','Uneasy','Tense','Dread','On edge','Hypervigilant','Apprehensive'],
+      Ashamed:['Guilty','Embarrassed','Worthless','Small','Exposed','Humiliated'],
+      Numb:['Detached','Flat','Empty','Dissociated','Shutdown','Frozen','Withdrawn'],
+      Tired:['Exhausted','Burnt out','Depleted','Heavy','Worn down','Fatigued','Drained','Cranky'],
+      Lonely:['Isolated','Abandoned','Invisible','Disconnected','Misunderstood'],
+      Stressed:['Burned out','Cranky','Depleted','Overwhelmed','Rattled','Restless','Tense','Worn out'],
+      Happy:['Joyful','Delighted','Excited','Thrilled','Ecstatic','Bliss','Radiant','Vibrant','Alive','Energized','Playful','Silly','Free'],
+      Peaceful:['Calm','Centered','Content','Relaxed','Serene','Trusting','Present','Grounded','Soft','Gentle'],
+      Grateful:['Appreciative','Blessed','Fortunate','Humbled','Moved','Thankful','Touched'],
+      Hopeful:['Encouraged','Expectant','Optimistic','Trusting','Inspired'],
+      Powerful:['Adventurous','Brave','Capable','Confident','Determined','Proud','Strong','Worthy','Courageous','Accomplished'],
+      Tender:['Caring','Loving','Reflective','Vulnerable','Warm','Sensitive','Soft','Affectionate','Compassionate'],
+      Curious:['Engaged','Exploring','Fascinated','Interested','Intrigued','Stimulated','Wondering'],
+    };
+
+    // === STATE ===
+    let selectedTags = [];
+    let selectedMeds = [];
+    let selectedEmotion = null;
+    let selectedSubEmotions = [];
+
+    // === INIT GRIDS ===
+    function initTagsGrid() {
+      document.getElementById('tagsGrid').innerHTML = QUICK_TAGS.map(t =>
+        `<button class="tag-btn" onclick="toggleTag('${t}', this)">${t}</button>`
+      ).join('');
+    }
+    function initMedsGrid() {
+      document.getElementById('medsGrid').innerHTML = MEDS_LIST.map(m =>
+        `<label class="med-check"><input type="checkbox" onchange="toggleMed('${m}')"> ${m}</label>`
+      ).join('');
+    }
+    function initEmotionGrid() {
+      document.getElementById('emotionGrid').innerHTML = PRIMARY_EMOTIONS.map(e =>
+        `<button class="emotion-btn" onclick="selectEmotion('${e}', this)">${e}</button>`
+      ).join('');
+    }
+
+    // === UPLINK FORM ===
+    function updateSlider(el) { document.getElementById(el.id + 'Val').textContent = el.value; updatePacketPreview(); }
+    function toggleTag(tag, btn) {
+      if (selectedTags.includes(tag)) { selectedTags = selectedTags.filter(t => t !== tag); btn.classList.remove('selected'); }
+      else { selectedTags.push(tag); btn.classList.add('selected'); }
+      document.getElementById('tagsSelected').textContent = 'Selected: ' + (selectedTags.length ? selectedTags.join(', ') : '—');
+      updatePacketPreview();
+    }
+    function toggleMed(med) {
+      if (selectedMeds.includes(med)) selectedMeds = selectedMeds.filter(m => m !== med);
+      else selectedMeds.push(med);
+      updatePacketPreview();
+    }
+
+    function applyFlare(level) {
+      const p = FLARE_PRESETS[level];
+      document.getElementById('uPain').value = p.pain; document.getElementById('uPainVal').textContent = p.pain;
+      document.getElementById('uSpoons').value = p.spoons; document.getElementById('uSpoonsVal').textContent = p.spoons;
+      document.getElementById('uFog').value = p.fog; document.getElementById('uFogVal').textContent = p.fog;
+      document.getElementById('uFatigue').value = p.fatigue; document.getElementById('uFatigueVal').textContent = p.fatigue;
+      document.getElementById('uNausea').value = p.nausea; document.getElementById('uNauseaVal').textContent = p.nausea;
+      document.getElementById('uMood').value = p.mood;
+      // Reset tags and apply preset tags
+      selectedTags = [...p.tags];
+      document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.classList.toggle('selected', selectedTags.includes(btn.textContent));
+      });
+      document.getElementById('tagsSelected').textContent = 'Selected: ' + (selectedTags.length ? selectedTags.join(', ') : '—');
+      updatePacketPreview();
+    }
+
+    function getUplinkData() {
+      const now = new Date();
+      const otherMeds = document.getElementById('uOtherMeds').value.trim();
+      const allMeds = [...selectedMeds];
+      if (otherMeds) allMeds.push(otherMeds);
+      return {
+        date: now.toISOString().split('T')[0],
+        time: now.toTimeString().slice(0, 5),
+        pain: parseInt(document.getElementById('uPain').value),
+        spoons: parseInt(document.getElementById('uSpoons').value),
+        fog: parseInt(document.getElementById('uFog').value),
+        fatigue: parseInt(document.getElementById('uFatigue').value),
+        nausea: parseInt(document.getElementById('uNausea').value),
+        mood: document.getElementById('uMood').value,
+        pain_location: document.getElementById('uPainLoc').value,
+        location: document.getElementById('uLocation').value,
+        need: document.getElementById('uNeed').value,
+        tags: selectedTags,
+        medsTaken: allMeds,
+        notes: document.getElementById('uNotes').value.trim(),
+        orgasm: document.getElementById('uOrgasm').checked,
+      };
+    }
+
+    function updatePacketPreview() {
+      const f = getUplinkData();
+      const now = new Date();
+      const when = now.toISOString().split('T')[0] + ' ' + now.toTimeString().slice(0,5);
+      const tags = selectedTags.length ? selectedTags.join(', ') : '—';
+      const loc = f.pain_location !== '—' ? f.pain_location : '—';
+      const meds = selectedMeds.length ? selectedMeds.join(', ') + (document.getElementById('uOtherMeds').value ? ', ' + document.getElementById('uOtherMeds').value : '') : (document.getElementById('uOtherMeds').value || '—');
+
+      document.getElementById('packetPreview').textContent =
+`>>> ASAI UPLINK [${when}]
+Location: ${f.location}
+Need: ${f.need}
+-----------------------------
+Pain:     ${f.pain}/10 | Location: ${loc}
+Spoons:   ${f.spoons}/10
+Fog:      ${f.fog}/10
+Fatigue:  ${f.fatigue}/10
+Nausea:   ${f.nausea}/10
+Mood:     ${f.mood}
+Orgasm:   ${f.orgasm ? 'Yes' : '—'}
+Tags:     ${tags}
+Meds:     ${meds}
+Notes:    ${f.notes || '—'}
+-----------------------------
+>>> End of packet.`;
+    }
+
+    function copyPacket() {
+      navigator.clipboard.writeText(document.getElementById('packetPreview').textContent).then(() => alert('Packet copied!'));
+    }
+
+    async function sendUplink() {
+      const btn = document.getElementById('sendUplinkBtn');
+      const successEl = document.getElementById('uplinkSuccess');
+      btn.disabled = true; btn.textContent = 'Sending...';
+      try {
+        const data = getUplinkData();
+        console.log('Sending uplink:', data);
+        const res = await fetch(`${API.FOX_MIND}/uplink`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` }, body: JSON.stringify(data) });
+        const result = await res.json();
+        console.log('Uplink response:', res.status, result);
+        if (res.ok) {
+          successEl.textContent = 'Uplink sent ✓';
+          successEl.style.display = 'block';
+          setTimeout(() => successEl.style.display = 'none', 3000);
+          clearUplinkForm();
+          loadFoxPage();
+        } else {
+          successEl.textContent = 'Failed: ' + (result.error || res.status);
+          successEl.style.background = '#ff6b6b';
+          successEl.style.display = 'block';
+          setTimeout(() => { successEl.style.display = 'none'; successEl.style.background = ''; successEl.textContent = 'Uplink sent'; }, 5000);
+        }
+      } catch (err) {
+        console.error('Uplink failed:', err);
+        successEl.textContent = 'Error: ' + err.message;
+        successEl.style.background = '#ff6b6b';
+        successEl.style.display = 'block';
+        setTimeout(() => { successEl.style.display = 'none'; successEl.style.background = ''; successEl.textContent = 'Uplink sent'; }, 5000);
+      }
+      btn.disabled = false; btn.textContent = 'Send Uplink to Cloud';
+    }
+
+    function clearUplinkForm() {
+      document.getElementById('uPain').value = 0; document.getElementById('uPainVal').textContent = '0';
+      document.getElementById('uSpoons').value = 5; document.getElementById('uSpoonsVal').textContent = '5';
+      document.getElementById('uFog').value = 0; document.getElementById('uFogVal').textContent = '0';
+      document.getElementById('uFatigue').value = 0; document.getElementById('uFatigueVal').textContent = '0';
+      document.getElementById('uNausea').value = 0; document.getElementById('uNauseaVal').textContent = '0';
+      document.getElementById('uMood').value = '—';
+      document.getElementById('uPainLoc').value = '—';
+      document.getElementById('uLocation').value = 'The Nest';
+      document.getElementById('uNeed').value = '—';
+      document.getElementById('uNotes').value = '';
+      document.getElementById('uOtherMeds').value = '';
+      document.getElementById('uOrgasm').checked = false;
+      selectedTags = []; selectedMeds = [];
+      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('.meds-grid input[type="checkbox"]').forEach(c => c.checked = false);
+      document.getElementById('tagsSelected').textContent = 'Selected: —';
+      updatePacketPreview();
+    }
+
+    // === JOURNAL FORM ===
+    function selectEmotion(emo, btn) {
+      selectedEmotion = emo;
+      selectedSubEmotions = [];
+      document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+
+      // Show sub-emotions
+      const subs = SUB_EMOTIONS[emo] || [];
+      if (subs.length) {
+        document.getElementById('subEmotionArea').style.display = 'block';
+        document.getElementById('subEmotionArea').innerHTML = `
+          <div class="sub-emotions"><h4>More specifically...</h4>
+            <div class="sub-chips">${subs.map(s => `<button class="sub-chip" onclick="toggleSub('${s.replace(/'/g, "\\'")}', this)">${s}</button>`).join('')}</div>
+          </div>`;
+      } else { document.getElementById('subEmotionArea').style.display = 'none'; }
+
+      updateFeelingDisplay();
+      document.getElementById('writingArea').style.display = 'block';
+    }
+
+    function toggleSub(sub, btn) {
+      if (selectedSubEmotions.includes(sub)) { selectedSubEmotions = selectedSubEmotions.filter(s => s !== sub); btn.classList.remove('selected'); }
+      else { selectedSubEmotions.push(sub); btn.classList.add('selected'); }
+      updateFeelingDisplay();
+    }
+
+    function updateFeelingDisplay() {
+      if (!selectedEmotion) { document.getElementById('feelingDisplay').style.display = 'none'; return; }
+      document.getElementById('feelingDisplay').style.display = 'block';
+      const text = selectedSubEmotions.length ? `${selectedEmotion} (${selectedSubEmotions.join(', ')})` : selectedEmotion;
+      document.getElementById('feelingDisplay').innerHTML = `You're feeling: <strong>${escapeHtml(text)}</strong>`;
+    }
+
+    function applyPrompt(prompt) {
+      const ta = document.getElementById('jContent');
+      ta.value += (ta.value ? '\n\n' : '') + prompt + ' ';
+      ta.focus();
+    }
+
+    async function justLogIt() {
+      if (!selectedEmotion) return;
+      const mood = selectedSubEmotions.length ? `${selectedEmotion} (${selectedSubEmotions.join(', ')})` : selectedEmotion;
+      await saveJournal(`Feeling: ${mood}`, selectedEmotion, selectedSubEmotions);
+    }
+
+    async function saveWithNotes() {
+      if (!selectedEmotion) return;
+      const content = document.getElementById('jContent').value.trim();
+      await saveJournal(content || `Feeling: ${selectedEmotion}`, selectedEmotion, selectedSubEmotions);
+    }
+
+    async function saveJournal(content, emotion, tags) {
+      try {
+        const res = await fetch(`${API.FOX_MIND}/journals`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          body: JSON.stringify({ content, emotion, tags }),
+        });
+        if (res.ok) {
+          document.getElementById('journalSuccess').style.display = 'block';
+          setTimeout(() => document.getElementById('journalSuccess').style.display = 'none', 3000);
+          resetJournal();
+          loadFoxPage();
+        }
+      } catch (err) { console.error('Journal save failed:', err); }
+    }
+
+    function resetJournal() {
+      selectedEmotion = null; selectedSubEmotions = [];
+      document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('subEmotionArea').style.display = 'none';
+      document.getElementById('feelingDisplay').style.display = 'none';
+      document.getElementById('writingArea').style.display = 'none';
+      document.getElementById('jContent').value = '';
+    }
+
+    async function loadJournalHistory() {
+      const journals = await FoxMind.getJournals(20);
+      const entries = journals?.entries || (Array.isArray(journals) ? journals : []);
+      document.getElementById('journalHistory').innerHTML = entries.length
+        ? entries.map(j => {
+          let tags = [];
+          try {
+            if (typeof j.tags === 'string') {
+              let parsed = JSON.parse(j.tags);
+              if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+              tags = Array.isArray(parsed) ? parsed : [];
+            } else { tags = j.tags || []; }
+          } catch(e) {}
+          return `<div class="jf-history-card">
+            <div class="jf-entry-header">
+              <span class="jf-entry-emotion">${escapeHtml(j.emotion || '')}</span>
+              <span class="jf-entry-date">${escapeHtml(j.entry_date || '')}</span>
+            </div>
+            <div class="jf-entry-content">${escapeHtml(j.content || '')}</div>
+            ${tags.length ? `<div class="jf-entry-tags">${tags.map(t => `<span class="journal-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+          </div>`;
+        }).join('')
+        : '<div class="empty">No journal entries yet</div>';
+    }
+
+    // === HUMAN THREADS ===
+    async function loadFoxThreads() {
+      const data = await FoxMind.getThreads('active');
+      const threads = (data && data.threads) ? data.threads : [];
+      if (!threads.length) {
+        document.getElementById('foxThreads').innerHTML = '<div class="empty">No active threads — add one below</div>';
+        return;
+      }
+      document.getElementById('foxThreads').innerHTML = threads.map(t => {
+        const p = t.priority || 'medium';
+        const dot = p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢';
+        return `<div style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.06); font-size:13px;">
+          <span>${dot}</span>
+          <span style="flex:1">${escapeHtml(t.content || '')}</span>
+          <button onclick="resolveFoxThread(${t.id})" title="Resolve" style="border:none; background:none; cursor:pointer; font-size:16px; opacity:0.5;">✓</button>
+          <button onclick="deleteFoxThread(${t.id})" title="Delete" style="border:none; background:none; cursor:pointer; font-size:14px; opacity:0.4;">✕</button>
+        </div>`;
+      }).join('');
+    }
+
+    async function addFoxThread() {
+      const input = document.getElementById('newThreadInput');
+      const priority = document.getElementById('newThreadPriority').value;
+      const content = input.value.trim();
+      if (!content) return;
+      await FoxMind.addThread(content, priority);
+      input.value = '';
+      loadFoxThreads();
+    }
+
+    async function resolveFoxThread(id) {
+      await FoxMind.resolveThread(id);
+      loadFoxThreads();
+    }
+
+    async function deleteFoxThread(id) {
+      await FoxMind.deleteThread(id);
+      loadFoxThreads();
+    }
+
+    // === HELPERS ===
+    function trendArrow(current, previous, inverted = false) {
+      // inverted: true for metrics where DOWN is good (pain, fog, fatigue, nausea, stress)
+      if (previous === null || previous === undefined) return '';
+      const diff = current - previous;
+      if (diff === 0) return '<span class="trend-arrow trend-same">&rarr;</span>';
+      if (diff > 0) return inverted
+        ? '<span class="trend-arrow trend-up">&uarr;</span>'
+        : '<span class="trend-arrow trend-up-good">&uarr;</span>';
+      return inverted
+        ? '<span class="trend-arrow trend-down">&darr;</span>'
+        : '<span class="trend-arrow trend-down-bad">&darr;</span>';
+    }
+
+    function stressClass(level) {
+      if (level < 40) return 'stress-low';
+      if (level < 60) return 'stress-mid';
+      return 'stress-high';
+    }
+
+    function sleepContext(s) {
+      if (!s) return '';
+      const deep = s.deep_minutes || 0;
+      const rem = s.rem_minutes || 0;
+      const total = s.total_minutes || 0;
+      const parts = [];
+      if (deep < 45) parts.push(`Only ${deep} min deep sleep — you need 60-90 for real physical recovery.`);
+      else if (deep >= 60) parts.push(`${deep} min deep sleep — solid recovery.`);
+      if (rem < 40) parts.push(`REM was low at ${rem} min — cognitive processing may feel off.`);
+      if (total > 480 && deep < 45) parts.push(`You slept ${Math.floor(total/60)}+ hours but the quality was shallow.`);
+      return parts.join(' ');
+    }
+
+    const CYCLE_NOTES = {
+      'Menstrual': 'Energy typically lowest. Pain sensitivity higher. Your body is doing heavy work — be gentle with yourself.',
+      'Follicular': 'Energy rising. Good time for building and focus work. Pain sensitivity decreasing.',
+      'Ovulatory': 'Peak energy window. Creativity and social energy highest. Make the most of it.',
+      'Luteal': 'Energy declining. PMS symptoms may start. Patience with yourself. Fog and fatigue can creep in.',
+    };
+
+    // === DASHBOARD DATA ===
+    async function loadFoxPage() {
+      const [uplinkData, heartRate, stress, bodyBattery, sleep, hrv, spo2, cycle] = await Promise.all([
+        FoxMind.getUplink(3), FoxMind.getHeartRate(1), FoxMind.getStress(1),
+        FoxMind.getBodyBattery(1), FoxMind.getSleep(3), FoxMind.getHRV(3),
+        FoxMind.getSpo2(), FoxMind.getCycle(),
+      ]);
+
+      // Parse uplinks for trend comparison
+      let current = null, previous = null;
+      if (uplinkData) {
+        if (uplinkData.latest) {
+          current = uplinkData.latest;
+          const hist = uplinkData.history || [];
+          previous = hist.length > 1 ? hist[1] : null;
+        } else if (Array.isArray(uplinkData)) {
+          current = uplinkData[0]; previous = uplinkData[1] || null;
+        } else { current = uplinkData; }
+      }
+
+      // --- Current State with trends ---
+      try {
+        if (current) {
+          const u = current;
+          const p = previous;
+          const painLabel = u.pain_location && u.pain_location !== '—' && u.pain_location !== '--' ? ` (${escapeHtml(u.pain_location)})` : '';
+          const uplinkTime = u.timestamp || u.created_at || '';
+
+          // Show need prominently
+          const needEl = document.getElementById('foxNeed');
+          if (u.need && u.need !== '—' && u.need !== '–') {
+            needEl.textContent = u.need;
+            needEl.style.display = 'block';
+          }
+
+          // Meds — may be JSON string like '["Naproxen","Sertraline"]'
+          let medsRaw = u.meds || u.medsTaken || '[]';
+          let medsArr = [];
+          try {
+            medsArr = typeof medsRaw === 'string' ? JSON.parse(medsRaw) : (Array.isArray(medsRaw) ? medsRaw : []);
+          } catch(e) { medsArr = typeof medsRaw === 'string' ? medsRaw.split(',') : []; }
+          document.getElementById('medsToday').innerHTML = medsArr.length
+            ? medsArr.map(m => `<span style="display:inline-block; padding:4px 10px; margin:2px; background:rgba(232,160,191,0.1); border-radius:12px; font-size:12px;">${escapeHtml(m.trim())}</span>`).join('')
+            : '<span style="color:#8b88a2">None logged</span>';
+
+          document.getElementById('uplink').innerHTML = `
+            <div class="uplink-grid">
+              <div class="uplink-stat"><div class="uplink-value">${u.spoons ?? '?'}${trendArrow(u.spoons, p?.spoons, false)}</div><div class="uplink-label">Spoons</div><div class="uplink-max">/ 10</div></div>
+              <div class="uplink-stat"><div class="uplink-value">${u.pain ?? '?'}${trendArrow(u.pain, p?.pain, true)}</div><div class="uplink-label">Pain${painLabel}</div><div class="uplink-max">/ 10</div></div>
+              <div class="uplink-stat"><div class="uplink-value">${u.fog ?? '?'}${trendArrow(u.fog, p?.fog, true)}</div><div class="uplink-label">Fog</div><div class="uplink-max">/ 10</div></div>
+              <div class="uplink-stat"><div class="uplink-value">${u.fatigue ?? '?'}${trendArrow(u.fatigue, p?.fatigue, true)}</div><div class="uplink-label">Fatigue</div><div class="uplink-max">/ 10</div></div>
+              <div class="uplink-stat"><div class="uplink-value">${u.nausea ?? '?'}${trendArrow(u.nausea, p?.nausea, true)}</div><div class="uplink-label">Nausea</div><div class="uplink-max">/ 10</div></div>
+              <div class="uplink-stat"><div class="uplink-value" style="font-size:20px">${escapeHtml(u.mood || '?')}</div><div class="uplink-label">Mood</div></div>
+              <div class="uplink-meta"><span>${escapeHtml(u.location || '')}</span><span>${timeAgo(uplinkTime)}</span></div>
+            </div>`;
+        }
+      } catch (err) { console.error('Uplink render error:', err); }
+
+      // --- Body Data ---
+      try {
+        const hr = heartRate?.length ? heartRate[0] : null;
+        const st = stress?.length ? stress[0] : null;
+        const bb = bodyBattery?.length ? bodyBattery[0] : null;
+        const hv = hrv?.length ? hrv[0] : null;
+        const sp = spo2?.length ? spo2[0] : (spo2?.spo2 ? spo2 : null);
+
+        const bbLevel = bb?.level ?? '—';
+        const bbPct = typeof bbLevel === 'number' ? bbLevel : 0;
+        const stLevel = st?.level ?? '—';
+        const stPct = typeof stLevel === 'number' ? stLevel : 0;
+
+        document.getElementById('bodyData').innerHTML = `
+          <div class="body-row">
+            <div><div class="body-label">Body Battery</div><div class="body-context">${bbPct > 60 ? 'Good reserves' : bbPct > 30 ? 'Can work, pace yourself' : 'Running low — rest soon'}</div></div>
+            <div class="body-value">${bbLevel}<span class="body-unit">%</span></div>
+          </div>
+          <div class="body-bar"><div class="body-bar-fill ${bbPct > 60 ? 'stress-low' : bbPct > 30 ? 'stress-mid' : 'stress-high'}" style="width:${bbPct}%"></div></div>
+
+          <div class="body-row" style="margin-top:8px">
+            <div><div class="body-label">Heart Rate</div><div class="body-context">${hr ? (hr.bpm < 80 ? 'Resting range' : hr.bpm < 100 ? 'Slightly elevated' : 'Elevated — check in') : ''}</div></div>
+            <div class="body-value">${hr ? hr.bpm : '—'}<span class="body-unit"> bpm</span></div>
+          </div>
+
+          <div class="body-row">
+            <div><div class="body-label">Stress</div><div class="body-context">${stPct < 40 ? 'Low — you\'re holding steady' : stPct < 60 ? 'Moderate' : 'High — consider a break'}</div></div>
+            <div class="body-value">${stLevel}</div>
+          </div>
+          <div class="body-bar"><div class="body-bar-fill ${stressClass(stPct)}" style="width:${stPct}%"></div></div>
+
+          ${hv ? `<div class="body-row" style="margin-top:8px">
+            <div><div class="body-label">HRV</div><div class="body-context">${hv.weekly_avg ? `7-day avg: ${hv.weekly_avg}ms` : (hv.value > 30 ? 'Good recovery' : 'Low — body under load')}</div></div>
+            <div class="body-value">${hv.value || hv.hrv || '—'}<span class="body-unit"> ms</span></div>
+          </div>` : ''}
+
+          ${sp ? `<div class="body-row">
+            <div><div class="body-label">SpO2</div><div class="body-context">${(sp.value || sp.spo2 || 0) < 95 ? 'Below normal — monitor' : 'Normal'}</div></div>
+            <div class="body-value">${sp.value || sp.spo2 || sp.avg || '—'}<span class="body-unit">%</span></div>
+          </div>` : ''}
+
+          <div style="font-size:10px; color:#8b88a2; opacity:0.6; text-align:right; margin-top:8px;">
+            ${hr?.timestamp ? `Updated ${timeAgo(hr.timestamp)}` : ''}
+          </div>`;
+      } catch (err) { console.error('Body data render error:', err); }
+
+      // --- Cycle ---
+      try {
+        if (cycle) {
+          const c = Array.isArray(cycle) ? cycle[0] : cycle;
+          if (c && c.phase) {
+            const note = CYCLE_NOTES[c.phase] || '';
+            document.getElementById('cycleCard').innerHTML = `
+              <div class="cycle-phase">${escapeHtml(c.phase)}</div>
+              <div class="cycle-day">Day ${c.cycle_day || '?'}</div>
+              ${note ? `<div class="cycle-note">${note}</div>` : ''}`;
+          } else {
+            document.getElementById('cycleCard').innerHTML = '<div style="color:#8b88a2; font-size:13px">No cycle data</div>';
+          }
+        }
+      } catch (err) { console.error('Cycle render error:', err); }
+
+      // --- Sleep (last 3 nights with context) ---
+      try {
+        if (sleep?.length) {
+          const ctx = sleepContext(sleep[0]);
+          if (ctx) {
+            const ctxEl = document.getElementById('sleepContext');
+            ctxEl.textContent = ctx;
+            ctxEl.style.display = 'block';
+          }
+
+          const renderNight = (s, isFirst) => {
+            const total=s.total_minutes||0, h=Math.floor(total/60), m=total%60;
+            const d=s.deep_minutes||0, l=s.light_minutes||0, r=s.rem_minutes||0, a=s.awake_minutes||0, all=d+l+r+a||1;
+            const score = s.score ? ` (score: ${s.score})` : '';
+            return `
+              <div style="margin-bottom:${isFirst ? '12px' : '8px'}; ${!isFirst ? 'opacity:0.65;' : ''}">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                  <span style="font-size:${isFirst ? '28px' : '16px'}; font-weight:700; color:#e8e6f0;">${h}h ${m}m${isFirst ? score : ''}</span>
+                  <span style="font-size:10px; color:#8b88a2;">${s.date||''}</span>
+                </div>
+                <div class="sleep-bar" style="height:${isFirst ? '24px' : '14px'}">
+                  ${d?`<div class="sleep-segment sleep-deep" style="width:${Math.round(d/all*100)}%" title="Deep: ${d}m"></div>`:''}
+                  ${l?`<div class="sleep-segment sleep-light" style="width:${Math.round(l/all*100)}%" title="Light: ${l}m"></div>`:''}
+                  ${r?`<div class="sleep-segment sleep-rem" style="width:${Math.round(r/all*100)}%" title="REM: ${r}m"></div>`:''}
+                  ${a?`<div class="sleep-segment sleep-awake" style="width:${Math.round(a/all*100)}%" title="Awake: ${a}m"></div>`:''}
+                </div>
+                ${isFirst ? `<div style="display:flex; gap:16px; margin-top:4px; font-size:10px; color:#8b88a2;">
+                  <span>Deep: ${d}m</span><span>Light: ${l}m</span><span>REM: ${r}m</span><span>Awake: ${a}m</span>
+                </div>` : ''}
+              </div>`;
+          };
+          const legend = `<div class="sleep-legend" style="margin-top:8px;">
+            <div class="sleep-legend-item"><div class="sleep-legend-dot sleep-deep"></div> Deep</div>
+            <div class="sleep-legend-item"><div class="sleep-legend-dot sleep-light"></div> Light</div>
+            <div class="sleep-legend-item"><div class="sleep-legend-dot sleep-rem"></div> REM</div>
+            <div class="sleep-legend-item"><div class="sleep-legend-dot sleep-awake"></div> Awake</div>
+          </div>`;
+          document.getElementById('sleep').innerHTML = sleep.slice(0, 3).map((s, i) => renderNight(s, i === 0)).join('') + legend;
+        } else { document.getElementById('sleep').innerHTML = '<div class="empty">No sleep data yet</div>'; }
+      } catch (err) { console.error('Sleep render error:', err); }
+
+      // --- Recent Notes (from uplink history) ---
+      try {
+        const notesData = await FoxMind.getUplink(20);
+        const allUplinks = notesData?.history || (Array.isArray(notesData) ? notesData : []);
+        const withNotes = allUplinks.filter(u => u.notes && u.notes.trim());
+
+        if (withNotes.length) {
+          document.getElementById('recentNotes').innerHTML = withNotes.slice(0, 10).map(u => {
+            const ts = u.timestamp || u.created_at || '';
+            const dateStr = ts ? new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+            let medsArr = [];
+            try {
+              const raw = u.meds || u.medsTaken || '[]';
+              medsArr = typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []);
+            } catch(e) { medsArr = []; }
+            return `<div class="note-item">
+              <div class="note-meta">
+                <span class="note-date">${dateStr}</span>
+                <span class="note-state">${u.spoons ?? '?'}sp / ${u.pain ?? '?'}p / ${escapeHtml(u.mood || '')}</span>
+              </div>
+              <div class="note-text">${escapeHtml(u.notes)}</div>
+              ${medsArr.length ? `<div class="note-meds">Meds: ${escapeHtml(medsArr.join(', '))}</div>` : ''}
+            </div>`;
+          }).join('');
+        } else {
+          document.getElementById('recentNotes').innerHTML = '<div class="empty" style="color:#8b88a2; font-size:13px; padding:8px;">No notes yet — write something in your next uplink</div>';
+        }
+
+        // --- Pain Map (from same uplink data) ---
+        const painUplinks = allUplinks.filter(u => u.pain_location && u.pain_location !== '\u2014' && u.pain_location !== '—' && u.pain_location !== '--' && u.pain_location !== '-' && u.pain > 0);
+        if (painUplinks.length) {
+          // Count by location and calculate average pain per location
+          const locMap = {};
+          for (const u of painUplinks) {
+            const loc = u.pain_location;
+            if (!locMap[loc]) locMap[loc] = { count: 0, totalPain: 0 };
+            locMap[loc].count++;
+            locMap[loc].totalPain += u.pain || 0;
+          }
+          const sorted = Object.entries(locMap).sort((a, b) => b[1].count - a[1].count);
+          const maxCount = sorted[0][1].count;
+
+          document.getElementById('painMap').innerHTML = sorted.map(([loc, data]) => {
+            const avgPain = (data.totalPain / data.count).toFixed(1);
+            const pct = Math.max(10, (data.count / maxCount) * 100);
+            return `<div class="pain-loc-row">
+              <span class="pain-loc-label">${escapeHtml(loc)}</span>
+              <div class="pain-loc-bar">
+                <div class="pain-loc-fill" style="width:${pct}%">
+                  <span class="pain-loc-count">${data.count}</span>
+                </div>
+              </div>
+              <span class="pain-loc-avg">avg ${avgPain}</span>
+            </div>`;
+          }).join('');
+        } else {
+          document.getElementById('painMap').innerHTML = '<div class="empty" style="color:#8b88a2; font-size:13px; padding:8px;">No pain location data yet</div>';
+        }
+      } catch (err) {
+        console.error('Notes/Pain map error:', err);
+        document.getElementById('recentNotes').innerHTML = '<div class="empty">Error loading notes</div>';
+        document.getElementById('painMap').innerHTML = '<div class="empty">Error loading pain data</div>';
+      }
+
+      // --- 7-Day Trends ---
+      try {
+        const [uplinkHistory, bbHistory, stressHistory] = await Promise.all([
+          FoxMind.getUplink(7),
+          FoxMind.getBodyBattery(7),
+          FoxMind.getStress(7),
+        ]);
+
+        const uplinks = uplinkHistory?.entries || (Array.isArray(uplinkHistory) ? uplinkHistory : []);
+        const bbs = Array.isArray(bbHistory) ? bbHistory : [];
+        const sts = Array.isArray(stressHistory) ? stressHistory : [];
+
+        function renderTrendRow(label, values, max, color, inverted = false) {
+          if (!values.length) return '';
+          const avg = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+          const curr = values[0];
+          const prev = values[1] ?? null;
+          const dir = prev === null ? '' : (curr > prev ? (inverted ? '<span class="trend-dir trend-up">&uarr;</span>' : '<span class="trend-dir trend-up-good">&uarr;</span>') : curr < prev ? (inverted ? '<span class="trend-dir trend-down">&darr;</span>' : '<span class="trend-dir trend-down-bad">&darr;</span>') : '<span class="trend-dir trend-same">&rarr;</span>');
+
+          const bars = values.slice(0, 7).reverse().map(v => {
+            const pct = Math.max(5, (v / max) * 100);
+            return `<div class="trend-bar" style="height:${pct}%; background:${color}; opacity:0.8;"></div>`;
+          }).join('');
+
+          return `<div class="trend-row">
+            <span class="trend-label">${label}</span>
+            <div class="trend-bars">${bars}</div>
+            <span class="trend-current">${curr}</span>
+            <span class="trend-avg">avg ${avg}</span>
+            ${dir}
+          </div>`;
+        }
+
+        const spoonsVals = uplinks.map(u => u.spoons).filter(v => v != null);
+        const painVals = uplinks.map(u => u.pain).filter(v => v != null);
+        const bbVals = bbs.map(b => b.level).filter(v => v != null);
+        const stVals = sts.map(s => s.level).filter(v => v != null);
+
+        let html = '';
+        html += renderTrendRow('Spoons', spoonsVals, 10, '#a78bfa', false);
+        html += renderTrendRow('Pain', painVals, 10, '#f87171', true);
+        html += renderTrendRow('Battery', bbVals, 100, '#34d399', false);
+        html += renderTrendRow('Stress', stVals, 100, '#fbbf24', true);
+
+        document.getElementById('trends').innerHTML = html || '<div class="empty">Not enough data for trends yet</div>';
+      } catch (err) {
+        console.error('Trends render error:', err);
+        document.getElementById('trends').innerHTML = '<div class="empty">Trends unavailable</div>';
+      }
+    }
+
+    // === SYNTHESIS (separate, can be slower) ===
+    async function loadSynthesis() {
+      try {
+        const data = await FoxMind.getSynthesis();
+        if (data?.ok && data.synthesis) {
+          document.getElementById('synthesis').textContent = data.synthesis;
+          document.getElementById('synthesisTime').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        } else {
+          document.getElementById('synthesis').textContent = 'Synthesis unavailable right now.';
+        }
+      } catch (err) {
+        console.error('Synthesis error:', err);
+        document.getElementById('synthesis').textContent = 'Could not reach companion for synthesis.';
+      }
+    }
+
+    // === INIT ===
+    initTagsGrid();
+    initMedsGrid();
+    initEmotionGrid();
+    loadFoxPage();
+    loadFoxThreads();
+    loadSynthesis();
+    setInterval(loadFoxPage, 60000);
+    setInterval(loadFoxThreads, 60000);
+    setInterval(loadSynthesis, 15 * 60000); // refresh synthesis every 15min
+    document.getElementById('newThreadInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addFoxThread();
+    });
+    // Listen for input changes to update packet preview
+    document.querySelectorAll('.uf-select, .uf-input, .uf-textarea, input[type="checkbox"]').forEach(el => {
+      el.addEventListener('change', updatePacketPreview);
+      el.addEventListener('input', updatePacketPreview);
+    });
+  </script>
+
+</body>
+</html>

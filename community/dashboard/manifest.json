@@ -1,0 +1,23 @@
+{
+  "name": "NESTeq — The Nest",
+  "short_name": "The Nest",
+  "description": "Our house. Our rules.",
+  "start_url": "/chat.html",
+  "display": "standalone",
+  "background_color": "#1a1430",
+  "theme_color": "#1a1430",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/images/ember.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/companion-default.svg",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

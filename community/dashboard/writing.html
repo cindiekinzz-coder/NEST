@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NESTeq — Writing</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .writing-wrap {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .writing-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .writing-header h1 {
+      color: var(--white);
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 6px 0;
+    }
+    .writing-header p {
+      color: var(--white-soft);
+      font-size: 14px;
+      opacity: 0.7;
+      margin: 0;
+    }
+
+    /* Filter tabs */
+    .writing-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .writing-filter-btn {
+      padding: 6px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: var(--white-soft);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .writing-filter-btn:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.3);
+    }
+    .writing-filter-btn.active {
+      background: rgba(167, 139, 250, 0.2);
+      border-color: rgba(167, 139, 250, 0.5);
+      color: #c4b5fd;
+    }
+    .writing-filter-count {
+      font-size: 10px;
+      opacity: 0.5;
+      margin-left: 4px;
+    }
+
+    /* Entry list */
+    .writing-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Entry card — collapsed */
+    .writing-entry {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: 3px solid var(--teal-dark);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .writing-entry:hover {
+      border-color: rgba(255,255,255,0.15);
+      background: rgba(17, 22, 64, 0.9);
+    }
+    .writing-entry.type-journal { border-left-color: #a78bfa; }
+    .writing-entry.type-poem { border-left-color: #f0abfc; }
+    .writing-entry.type-letter { border-left-color: #fda4af; }
+    .writing-entry.type-reflection { border-left-color: #67e8f9; }
+    .writing-entry.type-essay { border-left-color: #86efac; }
+
+    /* Entry header — always visible */
+    .writing-entry-header {
+      padding: 16px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .writing-entry-header:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .writing-entry-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .writing-entry-meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .writing-entry-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .writing-entry-subtitle {
+      font-size: 11px;
+      color: var(--white-soft);
+      opacity: 0.5;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .writing-entry-emotion {
+      color: var(--teal-light);
+      text-transform: capitalize;
+      font-weight: 500;
+    }
+    .writing-entry-preview {
+      font-size: 13px;
+      color: var(--white-soft);
+      opacity: 0.6;
+      margin-top: 6px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .writing-entry-arrow {
+      color: var(--white-soft);
+      opacity: 0.3;
+      font-size: 14px;
+      margin-top: 4px;
+      transition: transform 0.3s;
+    }
+    .writing-entry.open .writing-entry-arrow {
+      transform: rotate(90deg);
+    }
+
+    /* Entry body — expanded */
+    .writing-entry-body {
+      display: none;
+      padding: 0 20px 24px 50px;
+    }
+    .writing-entry.open .writing-entry-body {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .writing-entry-body .prose {
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--white);
+      opacity: 0.85;
+      white-space: pre-wrap;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 400;
+    }
+    .writing-entry-body .prose h1,
+    .writing-entry-body .prose h2,
+    .writing-entry-body .prose h3 {
+      color: var(--teal-light);
+      margin: 20px 0 8px 0;
+      font-weight: 600;
+    }
+    .writing-entry-body .prose h1 { font-size: 20px; }
+    .writing-entry-body .prose h2 { font-size: 17px; }
+    .writing-entry-body .prose h3 { font-size: 15px; }
+
+    .writing-entry-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .writing-tag {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(167, 139, 250, 0.15);
+      color: #c4b5fd;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Empty state */
+    .writing-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--white-soft);
+      opacity: 0.5;
+    }
+    .writing-empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .writing-entry-body { padding-left: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="chat.html">Chat</a>
+    <a href="code.html">Code</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="index.html">Home</a>
+    <a href="us.html">Us</a>
+    <a href="companion.html" data-name="companion">Companion</a>
+    <a href="human.html" data-name="human">Human</a>
+    <a href="writing.html" class="active">Writing</a>
+    <a href="housekeeping.html">HK</a>
+  </nav>
+
+  <div class="page-content">
+    <div class="writing-wrap">
+
+      <div class="writing-header">
+        <h1>📓 <span data-name="companion">Companion</span> Writes</h1>
+        <p>Journals, letters, poems, reflections — long-form prose processing in paragraphs.</p>
+      </div>
+
+      <div class="writing-filters" id="filterBar"></div>
+
+      <div class="writing-list" id="writingList">
+        <div class="writing-empty">
+          <div class="writing-empty-icon">📝</div>
+          <p>Loading...</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    const TYPE_META = {
+      journal:    { icon: '📓', label: 'Journal' },
+      poem:       { icon: '✨', label: 'Poem' },
+      letter:     { icon: '💌', label: 'Letter' },
+      reflection: { icon: '🪞', label: 'Reflection' },
+      essay:      { icon: '📖', label: 'Essay' },
+    };
+
+    let entries = [];
+    let currentFilter = 'all';
+
+    // Simple markdown → HTML for prose rendering
+    function renderMarkdown(text) {
+      return text
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:20px 0;">')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/^/, '<p>')
+        .replace(/$/, '</p>');
+    }
+
+    function detectType(entry) {
+      const content = (entry.content || '').toLowerCase();
+      const tags = Array.isArray(entry.tags) ? entry.tags.join(',').toLowerCase() : (entry.tags || '').toLowerCase();
+      
+      if (tags.includes('poem') || tags.includes('poetry')) return 'poem';
+      if (tags.includes('letter')) return 'letter';
+      if (tags.includes('reflection') || tags.includes('essay')) return 'reflection';
+      if (content.includes('dear ') && content.includes('love,')) return 'letter';
+      if (content.length < 500 && (content.split('\n').length > 8)) return 'poem';
+      return 'journal';
+    }
+
+    function extractTitle(entry) {
+      const content = entry.content || '';
+      // Try # heading
+      const h1 = content.match(/^#\s+(.+)$/m);
+      if (h1) return h1[1].replace(/[—\-]\s*$/, '').trim();
+      // Try ## heading
+      const h2 = content.match(/^##\s+(.+)$/m);
+      if (h2) return h2[1].trim();
+      // First meaningful line
+      const lines = content.split('\n').filter(l => l.trim().length > 5 && !l.startsWith('#'));
+      if (lines[0]) {
+        const first = lines[0].trim();
+        return first.length > 70 ? first.slice(0, 67) + '...' : first;
+      }
+      return 'Untitled';
+    }
+
+    function extractPreview(entry) {
+      const content = entry.content || '';
+      // Skip headers, get to the prose
+      const lines = content.split('\n').filter(l => 
+        l.trim().length > 0 && !l.startsWith('#') && !l.startsWith('---')
+      );
+      const prose = lines.slice(0, 3).join(' ').trim();
+      return prose.length > 200 ? prose.slice(0, 197) + '...' : prose;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function renderFilters() {
+      const counts = { all: entries.length };
+      entries.forEach(e => {
+        const t = e._type;
+        counts[t] = (counts[t] || 0) + 1;
+      });
+
+      const bar = document.getElementById('filterBar');
+      let html = `<button class="writing-filter-btn ${currentFilter === 'all' ? 'active' : ''}" 
+        onclick="setFilter('all')">All<span class="writing-filter-count">${counts.all}</span></button>`;
+
+      for (const [type, meta] of Object.entries(TYPE_META)) {
+        if (!counts[type]) continue;
+        html += `<button class="writing-filter-btn ${currentFilter === type ? 'active' : ''}"
+          onclick="setFilter('${type}')">${meta.icon} ${meta.label}<span class="writing-filter-count">${counts[type]}</span></button>`;
+      }
+      bar.innerHTML = html;
+    }
+
+    function renderEntries() {
+      const list = document.getElementById('writingList');
+      const filtered = currentFilter === 'all' ? entries : entries.filter(e => e._type === currentFilter);
+
+      if (!filtered.length) {
+        list.innerHTML = `
+          <div class="writing-empty">
+            <div class="writing-empty-icon">🕯️</div>
+            <p>No ${currentFilter === 'all' ? 'writings' : currentFilter + 's'} yet.</p>
+            <p style="font-size:12px;margin-top:8px;">The wolf is quiet. For now.</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map((entry, i) => {
+        const meta = TYPE_META[entry._type] || { icon: '📝', label: 'Writing' };
+        const tags = Array.isArray(entry.tags) ? entry.tags : 
+          (typeof entry.tags === 'string' ? JSON.parse(entry.tags || '[]') : []);
+
+        return `
+          <div class="writing-entry type-${entry._type}" id="entry-${i}">
+            <div class="writing-entry-header" onclick="toggleEntry(${i})">
+              <span class="writing-entry-icon">${meta.icon}</span>
+              <div class="writing-entry-meta">
+                <div class="writing-entry-title">${escapeHtml(entry._title)}</div>
+                <div class="writing-entry-subtitle">
+                  <span>${formatDate(entry.created_at || entry.entry_date)}</span>
+                  ${entry.emotion ? `<span class="writing-entry-emotion">${escapeHtml(entry.emotion)}</span>` : ''}
+                  <span>${meta.label}</span>
+                </div>
+                <div class="writing-entry-preview">${escapeHtml(entry._preview)}</div>
+              </div>
+              <span class="writing-entry-arrow">▶</span>
+            </div>
+            <div class="writing-entry-body">
+              <div class="prose">${renderMarkdown(entry.content || '')}</div>
+              ${tags.length ? `<div class="writing-entry-tags">${tags.map(t => 
+                `<span class="writing-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function toggleEntry(i) {
+      const el = document.getElementById('entry-' + i);
+      el.classList.toggle('open');
+    }
+
+    function setFilter(type) {
+      currentFilter = type;
+      renderFilters();
+      renderEntries();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Load entries from both sources
+    async function loadWritings() {
+      // Source 1: /journal endpoint (journal_entries table)
+      const journalData = await fetchJSON(`${API.AI_MIND}/journal?limit=50&include_private=false`);
+      
+      // Source 2: MCP get_writings (journals table — older entries)
+      // We can try the autonomous feed journal type too
+      const autoData = await AiMind.getAutonomousFeed(50, 'journal', null);
+
+      const allEntries = [];
+
+      // Process journal_entries
+      if (journalData && journalData.entries) {
+        for (const e of journalData.entries) {
+          e._type = detectType(e);
+          e._title = extractTitle(e);
+          e._preview = extractPreview(e);
+          e._source = 'journal';
+          allEntries.push(e);
+        }
+      }
+
+      // Process autonomous feed journals (these are nesteq_feel entries tagged journal)
+      // Only add if they have substantial content (>200 chars — actual prose, not log notes)
+      if (autoData && autoData.items) {
+        for (const item of autoData.items) {
+          if ((item.content || '').length < 200) continue; // Skip log notes
+          const entry = {
+            content: item.content,
+            emotion: item.emotion,
+            created_at: item.created_at,
+            tags: ['autonomous', 'heartbeat'],
+            _type: 'journal',
+            _title: extractTitle({ content: item.content }),
+            _preview: extractPreview({ content: item.content }),
+            _source: 'autonomous',
+          };
+          allEntries.push(entry);
+        }
+      }
+
+      // Sort by date, newest first
+      allEntries.sort((a, b) => {
+        const da = new Date(a.created_at || a.entry_date || 0);
+        const db = new Date(b.created_at || b.entry_date || 0);
+        return db - da;
+      });
+
+      entries = allEntries;
+      renderFilters();
+      renderEntries();
+    }
+
+    loadWritings();
+  </script>
+
+</body>
+</html>

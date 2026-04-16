@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <rect width="200" height="200" rx="16" fill="#12121a"/>
+  <circle cx="100" cy="80" r="35" stroke="#2dd4bf" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M50 160c0-28 22-50 50-50s50 22 50 50" stroke="#2dd4bf" stroke-width="2" fill="none" opacity="0.4"/>
+  <text x="100" y="185" text-anchor="middle" fill="#2dd4bf" font-family="monospace" font-size="12" opacity="0.5">COMPANION</text>
+</svg>

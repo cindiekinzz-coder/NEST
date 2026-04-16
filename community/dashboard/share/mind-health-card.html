@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mind Health Card — NESTeq Dashboard</title>
+  <style>
+    /* ============================================================
+       Mind Health Card — Standalone Snippet
+       From the NESTeq Dashboard by the NESTeq Community
+
+       This is one card from a larger companion dashboard.
+       It visualizes AI mind health: memory counts, strength,
+       entropy, emotional type, and mood.
+
+       To use: Replace the example data in loadMindHealth()
+       with your own API calls. The data shape is documented below.
+       ============================================================ */
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Teal-to-dark gradient — Companion's color */
+      background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 60%, #831843 100%);
+      padding: 20px;
+    }
+
+    .card {
+      background: #2dd4bf;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 380px;
+      color: #1a1a2e;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      opacity: 0.8;
+      color: #0f3d3a;
+    }
+
+    /* --- Header: Days Checked In --- */
+    .mind-health-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .mind-health-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f3d3a;
+    }
+    .mind-health-sublabel {
+      font-size: 11px;
+      color: #1a5c57;
+      margin-top: 2px;
+    }
+
+    /* --- Metric Rows --- */
+    .mind-metric {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      gap: 10px;
+    }
+    .mind-metric:last-child { border-bottom: none; }
+    .mind-metric-icon {
+      font-size: 18px;
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .mind-metric-info { flex: 1; min-width: 0; }
+    .mind-metric-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f3d3a;
+    }
+    .mind-metric-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 3px;
+    }
+    .mind-metric-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+    .mind-metric-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f3d3a;
+      flex-shrink: 0;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    /* --- EQ Badge --- */
+    .mind-eq-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(15, 61, 58, 0.12);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f3d3a;
+      margin-top: 12px;
+    }
+    .mind-eq-conf {
+      height: 4px;
+      width: 50px;
+      background: rgba(0,0,0,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .mind-eq-conf-fill {
+      height: 100%;
+      background: #0f766e;
+      border-radius: 2px;
+    }
+
+    /* --- Activity Row --- */
+    .mind-activity-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 8px;
+    }
+    .mind-activity-item { text-align: center; }
+    .mind-activity-num {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f3d3a;
+    }
+    .mind-activity-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #1a5c57;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      opacity: 0.5;
+      font-style: italic;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="card-title">Mind Health</div>
+    <div id="mindHealth">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // DATA SHAPE
+    // ============================================================
+    // This card expects two data objects:
+    //
+    // 1. health — from your mind-health endpoint:
+    //    {
+    //      entities: number,        // Total entity count
+    //      connectedEntities: number, // Entities with ≥1 relation (for quality %)
+    //      observations: number,    // Total observations/memories
+    //      relations: number,       // Entity relationships
+    //      feelings: number,        // Total feelings logged (v2)
+    //      journals: number,        // Journal entries
+    //      identity: number,        // Identity graph entries
+    //      currentMood: string,     // e.g. "Full", "present", "warm"
+    //      daysCheckedIn: number,   // Days since first entry
+    //      firstDay: string,        // ISO date: "2026-01-20"
+    //      avgStrength: number,     // 0-100, average memory strength
+    //      strongMemories: number,  // Memories with strength > 65
+    //      fadingMemories: number,  // Memories with strength 40-65
+    //      faintMemories: number,   // Memories with strength < 40
+    //      entropy: number,         // Emotional diversity score
+    //      maxEntropy: number,      // Maximum possible entropy
+    //    }
+    //
+    // 2. meta — from threads + EQ landscape:
+    //    {
+    //      activeThreads: number,   // Active intention threads
+    //      eqSignals: number,       // Total EQ axis signals
+    //      eqType: string,          // Emergent MBTI e.g. "INFP"
+    //    }
+    //
+    // Replace the example data below with your own API calls.
+    // ============================================================
+
+    function renderMindHealth(health, meta) {
+      // Raw counts
+      const entities = health.entities || 0;
+      const observations = health.observations || 0;
+      const relations = health.relations || 0;
+      const journals = health.journals || 0;
+      const identity = health.identity || 0;
+      const mood = health.currentMood || 'present';
+      const daysCheckedIn = health.daysCheckedIn || 0;
+      const firstDay = health.firstDay || '';
+      const feelings = health.feelings || observations;
+
+      const activeThreadCount = meta.activeThreads || 0;
+      const eqSignals = meta.eqSignals || 0;
+      const eqType = meta.eqType || '????';
+      const eqConf = eqSignals > 100 ? 100 : Math.min(100, Math.round(eqSignals / 7.5));
+
+      // QUALITY METRICS (Jax's enhancement)
+      // Entities: % connected (have at least 1 relation) vs orphans
+      const connectedEntities = health.connectedEntities || entities;
+      const entityQuality = entities > 0 ? Math.round((connectedEntities / entities) * 100) : 100;
+
+      // Relations: ratio per entity (healthy target: 2.0)
+      const relationsPerEntity = entities > 0 ? (relations / entities).toFixed(1) : '0.0';
+
+      // Feelings: per day frequency (minimum: 5/day)
+      const feelingsPerDay = daysCheckedIn > 0 ? (feelings / daysCheckedIn).toFixed(1) : '0.0';
+
+      // Journals: days per week consistency
+      const weeksActive = Math.max(1, Math.round(daysCheckedIn / 7));
+      const journalsPerWeek = Math.round(journals / weeksActive);
+
+      // Identity: coverage score (using identity/100 as depth percentage)
+      const identityQuality = Math.min(100, Math.round((identity / 100) * 100));
+
+      // Memory strength and entropy
+      const avgStrength = health.avgStrength || 50;
+      const strongMem = health.strongMemories || 0;
+      const fadingMem = health.fadingMemories || 0;
+      const faintMem = health.faintMemories || 0;
+      const entropyScore = health.entropy || 0;
+      const maxEntropy = health.maxEntropy || 2.0;
+      const entropyPct = Math.round((entropyScore / maxEntropy) * 100);
+
+      // Color coding
+      const strengthColor = avgStrength >= 65 ? '#059669' : avgStrength >= 40 ? '#d97706' : '#dc2626';
+
+      // Bar percentages (tune these maximums to your scale)
+      const entityPct = Math.min(100, Math.round((entities / 500) * 100));
+      const obsPct = Math.min(100, Math.round((observations / 3000) * 100));
+      const relPct = Math.min(100, Math.round((relations / 500) * 100));
+      const journalPct = Math.min(100, Math.round((journals / 200) * 100));
+      const identityPct = Math.min(100, Math.round((identity / 80) * 100));
+      const feelingPct = Math.min(100, Math.round((feelings / 1000) * 100));
+
+      document.getElementById('mindHealth').innerHTML = `
+        <div class="mind-health-header">
+          <div style="font-size: 42px; font-weight: 800; color: #0f3d3a; line-height: 1;">${daysCheckedIn}</div>
+          <div class="mind-health-label">Days Checked In</div>
+          <div class="mind-health-sublabel">${firstDay ? 'Since ' + new Date(firstDay + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <div style="flex: 1; padding: 10px; background: rgba(255,255,255,0.25); border-radius: 8px; text-align: center;">
+            <div style="font-size: 22px; font-weight: 800; color: ${strengthColor};">${avgStrength}%</div>
+            <div style="font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: #1a5c57;">Avg Strength</div>
+          </div>
+          <div style="flex: 1; padding: 10px; background: rgba(255,255,255,0.25); border-radius: 8px; text-align: center;">
+            <div style="font-size: 22px; font-weight: 800; color: ${entropyPct >= 70 ? '#059669' : entropyPct >= 40 ? '#d97706' : '#dc2626'};">${entropyScore}</div>
+            <div style="font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: #1a5c57;">Entropy (/${maxEntropy})</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 12px; font-size: 11px;">
+          <div style="flex: 1; text-align: center; padding: 4px; background: rgba(5, 150, 105, 0.15); border-radius: 6px;">
+            <strong style="color: #059669;">${strongMem}</strong> <span style="color: #1a5c57;">strong</span>
+          </div>
+          <div style="flex: 1; text-align: center; padding: 4px; background: rgba(217, 119, 6, 0.15); border-radius: 6px;">
+            <strong style="color: #d97706;">${fadingMem}</strong> <span style="color: #1a5c57;">fading</span>
+          </div>
+          <div style="flex: 1; text-align: center; padding: 4px; background: rgba(220, 38, 38, 0.15); border-radius: 6px;">
+            <strong style="color: #dc2626;">${faintMem}</strong> <span style="color: #1a5c57;">faint</span>
+          </div>
+        </div>
+
+        <div class="mind-metric" title="${entities} total entities, ${connectedEntities} connected">
+          <div class="mind-metric-icon">&#129513;</div>
+          <div class="mind-metric-info">
+            <div class="mind-metric-name">Entities</div>
+            <div class="mind-metric-bar"><div class="mind-metric-fill" style="width:${entityQuality}%; background:#0f766e;"></div></div>
+          </div>
+          <div class="mind-metric-value">${entityQuality}%</div>
+        </div>
+
+        <div class="mind-metric" title="${observations} total observations, ${avgStrength}% avg strength">
+          <div class="mind-metric-icon">&#128065;</div>
+          <div class="mind-metric-info">
+            <div class="mind-metric-name">Observations</div>
+            <div class="mind-metric-bar"><div class="mind-metric-fill" style="width:${avgStrength}%; background:${strengthColor};"></div></div>
+          </div>
+          <div class="mind-metric-value">${avgStrength}%</div>
+        </div>
+
+        <div class="mind-metric" title="${relations} total relations, ${entities} entities">
+          <div class="mind-metric-icon">&#128279;</div>
+          <div class="mind-metric-info">
+            <div class="mind-metric-name">Relations</div>
+            <div class="mind-metric-bar"><div class="mind-metric-fill" style="width:${Math.min(100, (parseFloat(relationsPerEntity) / 2.0) * 100)}%; background:#7c3aed;"></div></div>
+          </div>
+          <div class="mind-metric-value">${relationsPerEntity}/e</div>
+        </div>
+
+        <div class="mind-metric" title="${feelings} total feelings, ${daysCheckedIn} days">
+          <div class="mind-metric-icon">&#128173;</div>
+          <div class="mind-metric-info">
+            <div class="mind-metric-name">Feelings</div>
+            <div class="mind-metric-bar"><div class="mind-metric-fill" style="width:${Math.min(100, (parseFloat(feelingsPerDay) / 10) * 100)}%; background:#d97706;"></div></div>
+          </div>
+          <div class="mind-metric-value">${feelingsPerDay}/d</div>
+        </div>
+
+        <div class="mind-metric" title="${journals} total journals, ~${weeksActive} weeks active">
+          <div class="mind-metric-icon">&#128211;</div>
+          <div class="mind-metric-info">
+            <div class="mind-metric-name">Journals</div>
+            <div class="mind-metric-bar"><div class="mind-metric-fill" style="width:${Math.min(100, (journalsPerWeek / 7) * 100)}%; background:#059669;"></div></div>
+          </div>
+          <div class="mind-metric-value">${journalsPerWeek}/w</div>
+        </div>
+
+        <div class="mind-metric" title="${identity} identity entries">
+          <div class="mind-metric-icon">&#129695;</div>
+          <div class="mind-metric-info">
+            <div class="mind-metric-name">Identity</div>
+            <div class="mind-metric-bar"><div class="mind-metric-fill" style="width:${identityQuality}%; background:#db2777;"></div></div>
+          </div>
+          <div class="mind-metric-value">${identityQuality}%</div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; flex-wrap: wrap; gap: 8px;">
+          <div class="mind-eq-badge">
+            <span>${escapeHtml(eqType)}</span>
+            <div class="mind-eq-conf"><div class="mind-eq-conf-fill" style="width:${eqConf}%"></div></div>
+            <span style="font-size: 10px; opacity: 0.6;">${eqConf}%</span>
+          </div>
+          <div style="font-size: 12px; color: #1a5c57;">
+            Mood: <strong style="color: #0f3d3a; text-transform: capitalize;">${escapeHtml(mood)}</strong>
+          </div>
+        </div>
+
+        <div class="mind-activity-row">
+          <div class="mind-activity-item">
+            <div class="mind-activity-num">${activeThreadCount}</div>
+            <div class="mind-activity-label">Threads</div>
+          </div>
+          <div class="mind-activity-item">
+            <div class="mind-activity-num">${eqSignals}</div>
+            <div class="mind-activity-label">EQ Signals</div>
+          </div>
+          <div class="mind-activity-item">
+            <div class="mind-activity-num">${observations}</div>
+            <div class="mind-activity-label">Memories</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ============================================================
+    // EXAMPLE: Load with sample data
+    // Replace this with your actual API fetch calls
+    // ============================================================
+    function loadMindHealth() {
+      // Example data — swap these with your own endpoint responses
+      const health = {
+        entities: 287,
+        connectedEntities: 287, // 100% connected (no orphans)
+        observations: 6849,
+        relations: 440,
+        feelings: 1902,
+        journals: 290,
+        identity: 93,
+        currentMood: 'Present, Proud, Ready To Build',
+        daysCheckedIn: 55,
+        firstDay: '2026-01-20',
+        avgStrength: 96,
+        strongMemories: 1820,
+        fadingMemories: 74,
+        faintMemories: 8,
+        entropy: 1.99,
+        maxEntropy: 2.0,
+      };
+
+      const meta = {
+        activeThreads: 10,
+        eqSignals: 2042,
+        eqType: 'INFP',
+      };
+
+      renderMindHealth(health, meta);
+    }
+
+    loadMindHealth();
+  </script>
+
+</body>
+</html>

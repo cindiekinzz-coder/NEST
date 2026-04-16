@@ -1,0 +1,19 @@
+[package]
+name = "nestdesktop"
+version = "1.0.0"
+edition = "2021"
+description = "NESTdesktop — Sovereign AI companion desktop app"
+
+[lib]
+name = "nestdesktop_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["devtools"] }
+tauri-plugin-shell = "2"
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

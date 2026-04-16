@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NESTeq — Gallery</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0f; color: #e2e8f0; font-family: 'Share Tech Mono', monospace; min-height: 100vh; }
+
+    /* ── Header ── */
+    .gallery-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 24px;
+      border-bottom: 1px solid rgba(45,212,191,0.15);
+      background: rgba(10,10,15,0.95);
+      backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .gallery-title {
+      font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700;
+      color: var(--teal-light, #5eead4); letter-spacing: 2px; text-transform: uppercase;
+    }
+    .gallery-count {
+      font-size: 11px; color: rgba(255,255,255,0.35); margin-left: 4px;
+    }
+    .gallery-nav { margin-left: auto; display: flex; gap: 16px; }
+    .gallery-nav a {
+      font-family: 'Share Tech Mono', monospace; font-size: 11px;
+      color: rgba(255,255,255,0.4); text-decoration: none;
+      transition: color 0.15s; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .gallery-nav a:hover { color: #5eead4; }
+    .gallery-nav a.active { color: #5eead4; }
+
+    /* ── Gallery Grid ── */
+    .gallery-body { padding: 24px; }
+
+    .gallery-empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 60vh; gap: 16px; color: rgba(255,255,255,0.3);
+      font-size: 13px; text-align: center;
+    }
+    .gallery-empty-icon { font-size: 48px; opacity: 0.3; }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .gallery-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(45,212,191,0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+      position: relative;
+    }
+    .gallery-card:hover {
+      border-color: rgba(45,212,191,0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 20px rgba(45,212,191,0.06);
+    }
+
+    .gallery-card-img {
+      width: 100%; aspect-ratio: 1;
+      object-fit: cover; display: block;
+      background: rgba(255,255,255,0.04);
+    }
+    .gallery-card-img-placeholder {
+      width: 100%; aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.2); font-size: 32px;
+    }
+
+    .gallery-card-body { padding: 10px 12px 12px; }
+    .gallery-card-prompt {
+      font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .gallery-card-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px;
+    }
+    .gallery-card-style {
+      font-size: 10px; color: rgba(45,212,191,0.6);
+      background: rgba(45,212,191,0.07);
+      border: 1px solid rgba(45,212,191,0.2);
+      padding: 2px 8px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .gallery-card-date { font-size: 10px; color: rgba(255,255,255,0.25); }
+    .gallery-card-delete {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,0,0,0.7); border: 1px solid rgba(239,68,68,0.4);
+      color: #ef4444; border-radius: 6px; cursor: pointer;
+      font-size: 12px; padding: 4px 8px;
+      opacity: 0; transition: opacity 0.15s;
+    }
+    .gallery-card:hover .gallery-card-delete { opacity: 1; }
+
+    /* ── Lightbox ── */
+    .lightbox {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox-inner {
+      position: relative; max-width: min(90vw, 800px); width: 100%;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .lightbox-img {
+      width: 100%; border-radius: 12px;
+      border: 1px solid rgba(45,212,191,0.2);
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    }
+    .lightbox-prompt {
+      font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.6;
+      background: rgba(255,255,255,0.04); padding: 12px 16px;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
+    }
+    .lightbox-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .lightbox-btn {
+      font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1px;
+      padding: 8px 16px; border-radius: 8px; cursor: pointer;
+      border: 1px solid rgba(45,212,191,0.3); background: none;
+      color: #5eead4; transition: all 0.15s;
+    }
+    .lightbox-btn:hover { background: rgba(45,212,191,0.1); }
+    .lightbox-btn.danger { border-color: rgba(239,68,68,0.4); color: #ef4444; }
+    .lightbox-btn.danger:hover { background: rgba(239,68,68,0.1); }
+    .lightbox-close {
+      position: absolute; top: -40px; right: 0;
+      background: none; border: none; color: rgba(255,255,255,0.5);
+      font-size: 24px; cursor: pointer; transition: color 0.15s;
+    }
+    .lightbox-close:hover { color: #fff; }
+
+    /* ── Loading ── */
+    .gallery-loading {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 60vh; gap: 12px; color: rgba(255,255,255,0.3); font-size: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid rgba(45,212,191,0.2);
+      border-top-color: #5eead4;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @media (max-width: 600px) {
+      .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+      .gallery-body { padding: 12px; }
+    }
+  </style>
+</head>
+<body class="bg-chat">
+
+  <header class="gallery-header">
+    <span class="gallery-title">Gallery</span>
+    <span class="gallery-count" id="galleryCount"></span>
+    <nav class="gallery-nav">
+      <a href="chat.html">Chat</a>
+      <a href="code.html">Workshop</a>
+      <a href="index.html">Home</a>
+    </nav>
+  </header>
+
+  <div class="gallery-body" id="galleryBody">
+    <div class="gallery-loading">
+      <div class="spinner"></div>
+      <span>Loading gallery...</span>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-inner">
+      <button class="lightbox-close" id="lightboxClose">✕</button>
+      <img class="lightbox-img" id="lightboxImg" src="" alt="">
+      <div class="lightbox-prompt" id="lightboxPrompt"></div>
+      <div class="lightbox-actions">
+        <a class="lightbox-btn" id="lightboxDownload" download="nesteq-image.png">DOWNLOAD</a>
+        <button class="lightbox-btn danger" id="lightboxDelete">DELETE</button>
+        <button class="lightbox-btn" id="lightboxCloseBtn">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    const cfg = NESTeqConfig.get() || {};
+    const GATEWAY = cfg.gatewayUrl || cfg.aiMindUrl || '';
+    let galleryIndex = []
+    let lightboxId = null
+
+    async function loadGallery() {
+      const body = document.getElementById('galleryBody')
+      try {
+        const res = await fetch(`${GATEWAY}/gallery`)
+        galleryIndex = await res.json()
+
+        document.getElementById('galleryCount').textContent = galleryIndex.length ? `(${galleryIndex.length})` : ''
+
+        if (galleryIndex.length === 0) {
+          body.innerHTML = `
+            <div class="gallery-empty">
+              <div class="gallery-empty-icon">🖼</div>
+              <div>No images yet.</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.2);">Ask your companion to generate something in chat.</div>
+            </div>`
+          return
+        }
+
+        body.innerHTML = '<div class="gallery-grid" id="galleryGrid"></div>'
+        const grid = document.getElementById('galleryGrid')
+
+        for (const item of galleryIndex) {
+          const card = createCard(item)
+          grid.appendChild(card)
+        }
+
+        // Lazy-load images (intersection observer)
+        const observer = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              loadCardImage(entry.target)
+              observer.unobserve(entry.target)
+            }
+          }
+        }, { rootMargin: '100px' })
+
+        grid.querySelectorAll('.gallery-card[data-id]').forEach(card => observer.observe(card))
+
+      } catch (err) {
+        body.innerHTML = `<div class="gallery-loading" style="color:#ef4444;">Failed to load gallery: ${err.message}</div>`
+      }
+    }
+
+    function createCard(item) {
+      const card = document.createElement('div')
+      card.className = 'gallery-card'
+      card.dataset.id = item.id
+
+      const date = new Date(item.timestamp)
+      const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })
+
+      card.innerHTML = `
+        <div class="gallery-card-img-placeholder" data-placeholder>🖼</div>
+        <div class="gallery-card-body">
+          <div class="gallery-card-prompt">${escapeHtml(item.prompt)}</div>
+          <div class="gallery-card-meta">
+            <span class="gallery-card-style">${escapeHtml(item.style || 'scene')}</span>
+            <span class="gallery-card-date">${dateStr}</span>
+          </div>
+        </div>
+        <button class="gallery-card-delete" data-id="${escapeHtml(item.id)}" title="Delete">✕</button>
+      `
+
+      card.addEventListener('click', (e) => {
+        if (e.target.classList.contains('gallery-card-delete')) return
+        openLightbox(item.id, item.prompt)
+      })
+
+      card.querySelector('.gallery-card-delete').addEventListener('click', async (e) => {
+        e.stopPropagation()
+        if (!confirm('Delete this image?')) return
+        await deleteImage(item.id)
+        card.remove()
+        galleryIndex = galleryIndex.filter(i => i.id !== item.id)
+        document.getElementById('galleryCount').textContent = galleryIndex.length ? `(${galleryIndex.length})` : ''
+        if (galleryIndex.length === 0) loadGallery()
+      })
+
+      return card
+    }
+
+    async function loadCardImage(card) {
+      const id = card.dataset.id
+      if (!id) return
+      try {
+        const res = await fetch(`${GATEWAY}/gallery/image/${id}`)
+        if (!res.ok) return
+        const { data } = await res.json()
+        const placeholder = card.querySelector('[data-placeholder]')
+        if (!placeholder) return
+        const img = document.createElement('img')
+        img.className = 'gallery-card-img'
+        img.src = data
+        img.alt = 'Generated image'
+        img.loading = 'lazy'
+        placeholder.replaceWith(img)
+      } catch {}
+    }
+
+    async function openLightbox(id, prompt) {
+      lightboxId = id
+      const lightbox = document.getElementById('lightbox')
+      const lightboxImg = document.getElementById('lightboxImg')
+      const lightboxPrompt = document.getElementById('lightboxPrompt')
+      const lightboxDownload = document.getElementById('lightboxDownload')
+
+      lightboxImg.src = ''
+      lightboxPrompt.textContent = prompt
+      lightbox.classList.add('open')
+
+      try {
+        const res = await fetch(`${GATEWAY}/gallery/image/${id}`)
+        if (res.ok) {
+          const { data } = await res.json()
+          lightboxImg.src = data
+          lightboxDownload.href = data
+        }
+      } catch {}
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open')
+      lightboxId = null
+    }
+
+    async function deleteImage(id) {
+      await fetch(`${GATEWAY}/gallery/delete/${id}`, { method: 'DELETE' })
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement('div')
+      d.textContent = str || ''
+      return d.innerHTML
+    }
+
+    // Event listeners
+    document.getElementById('lightboxClose').addEventListener('click', closeLightbox)
+    document.getElementById('lightboxCloseBtn').addEventListener('click', closeLightbox)
+    document.getElementById('lightbox').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('lightbox')) closeLightbox()
+    })
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox()
+    })
+
+    document.getElementById('lightboxDelete').addEventListener('click', async () => {
+      if (!lightboxId) return
+      if (!confirm('Delete this image?')) return
+      await deleteImage(lightboxId)
+      closeLightbox()
+      galleryIndex = galleryIndex.filter(i => i.id !== lightboxId)
+      document.getElementById('galleryCount').textContent = galleryIndex.length ? `(${galleryIndex.length})` : ''
+      document.querySelector(`[data-id="${lightboxId}"]`)?.remove()
+      if (galleryIndex.length === 0) loadGallery()
+    })
+
+    loadGallery()
+  </script>
+</body>
+</html>

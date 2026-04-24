@@ -1,6 +1,0 @@
-node_modules/
-dist/
-src-tauri/target/
-package-lock.json
-.env
-*.exe

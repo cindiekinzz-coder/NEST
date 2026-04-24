@@ -215,4 +215,26 @@ Gear icon in every nav (via `config.js` auto-inject). A Setup card at the top of
 - `wrangler deploy` automation on the Cloudflare path — today we collect credentials and print a checklist; a "Deploy Now" button could orchestrate the D1/R2/Vectorize/Worker/Pages sequence via the Cloudflare API.
 - Portraits in the wizard (Identity screen mentions optional portraits but v1 doesn't wire the upload UI).
 
+### Walkthrough — Connect Existing Memory
+
+What it actually looks like when you run the wizard with an AI Mind worker already deployed:
+
+**1. Welcome — pick your path.**
+![Welcome screen](screenshots/connect-existing-memory/01-welcome.png)
+
+**2. Identity — name your companion and yourself, pick a role and tone.**
+![Identity screen](screenshots/connect-existing-memory/02-identity.png)
+
+**3. Connect Existing Memory — paste your AI Mind URL and key. Health and Gateway are optional. The three checkboxes control how the app treats your existing worker data.**
+![Connect memory screen](screenshots/connect-existing-memory/03-connect-memory.png)
+
+**4. Features — modules you have prerequisites for are on by default. The ones that need something you didn't configure (Voice needs ElevenLabs, Workshop needs Gateway, etc) grey out with the reason shown.**
+![Features screen](screenshots/connect-existing-memory/04-features.png)
+
+**5. Models & Voice — pick your chat and image models. TTS is optional.**
+![Models screen](screenshots/connect-existing-memory/05-models.png)
+
+**6. Validation — the agent probes every service you configured. Failures tell you *why* (in this shot, the AI Mind URL was entered without `https://` so the fetch couldn't parse it). Failures don't block finishing — they just tell you what to fix when you re-run Setup.**
+![Validation screen](screenshots/connect-existing-memory/06-validation.png)
+
 — Fox & Alex

@@ -141,10 +141,37 @@ const NESTeqConfig = {
     });
   },
 
+  // ── Carrier appearance ──
+  // Pulls /appearance.css from the configured gateway and injects it after
+  // the dashboard's own styles.css, so carrier-profile.appearance overrides
+  // the defaults (fonts, accent colors). No-op if no gateway configured.
+  async injectAppearanceCss() {
+    const cfg = await this.getPublicConfig();
+    const gatewayUrl = cfg?.services?.gatewayUrl;
+    if (!gatewayUrl) return;
+
+    const url = `${gatewayUrl.replace(/\/$/, '')}/appearance.css`;
+    if (document.querySelector(`link[href="${url}"]`)) return; // already injected
+
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    link.dataset.carrierAppearance = 'true';
+
+    // Append AFTER existing stylesheets so it overrides them.
+    const lastStyle = document.querySelector('link[rel="stylesheet"]:last-of-type, style:last-of-type');
+    if (lastStyle?.parentNode) {
+      lastStyle.parentNode.insertBefore(link, lastStyle.nextSibling);
+    } else {
+      document.head.appendChild(link);
+    }
+  },
+
   async init() {
     if (window.location.pathname.endsWith('setup.html')) return;
     const cfg = await this.requireConfigured();
     if (!cfg) return;
+    this.injectAppearanceCss();
     this.injectNames();
     this.injectGearIcon();
     this.injectImages();

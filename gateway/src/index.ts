@@ -17,7 +17,7 @@ import { handleMobileMcp } from './mobile'
 import { handleChat } from './chat'
 import { handleTts } from './tts'
 import { executeTool } from './tools/execute'
-import { loadCarrierProfile } from './carrier'
+import { loadCarrierProfile, renderAppearanceCss } from './carrier'
 
 // Re-export the Daemon DO so wrangler can find it
 export { NESTcodeDaemon } from './daemon'
@@ -226,6 +226,21 @@ export default {
           status: 500, headers: { 'Content-Type': 'application/json', ...CORS }
         })
       }
+    }
+
+    // Carrier appearance — CSS custom properties from carrier-profile.appearance.
+    // Dashboard pulls this with `<link rel="stylesheet" href=".../appearance.css">`.
+    // Empty appearance config = dashboard defaults stay in effect.
+    if (url.pathname === '/appearance.css') {
+      const profile = loadCarrierProfile(env)
+      const css = renderAppearanceCss(profile)
+      return new Response(css, {
+        headers: {
+          'Content-Type': 'text/css; charset=utf-8',
+          'Cache-Control': 'public, max-age=300',
+          ...CORS,
+        },
+      })
     }
 
     // Widget data — pet status + health for dashboard widgets

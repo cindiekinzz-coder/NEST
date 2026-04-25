@@ -29,5 +29,14 @@
   },
   "deployment": {
     "dashboard_url": ""
+  },
+  "appearance": {
+    "$comment": "Optional. Override the dashboard's fonts and accent colors without forking. Empty values use NESTstack's defaults. Pulled live from GET /appearance.css on the gateway.",
+    "font_family": "",
+    "font_display": "",
+    "font_mono": "",
+    "accent_primary": "",
+    "accent_secondary": "",
+    "background_tone": ""
   }
 }

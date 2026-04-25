@@ -85,11 +85,26 @@
   /* Chamfer clip-path */
   --chamfer: polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
   --chamfer-sm: polygon(0 4px, 4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px));
+
+  /* --- Carrier-overridable typography & accents -------------------------
+     Defaults are set here. The gateway exposes /appearance.css which
+     overrides any of these from carrier-profile.json#appearance, e.g.:
+       --carrier-font-family, --carrier-font-display, --carrier-font-mono,
+       --carrier-accent-primary, --carrier-accent-secondary.
+     Add `<link rel="stylesheet" href="${gatewayUrl}/appearance.css">` in
+     your dashboard HTML after this stylesheet to pull the overrides.
+  ------------------------------------------------------------------------ */
+  --carrier-font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --carrier-font-display: 'Orbitron', 'Share Tech Mono', monospace;
+  --carrier-font-mono: 'Share Tech Mono', monospace;
+  --carrier-accent-primary: var(--teal);
+  --carrier-accent-secondary: var(--pink);
+  --carrier-background-tone: var(--bg-deep);
 }
 
 /* --- Body --- */
 body {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--carrier-font-family);
   font-size: 14px;
   background: var(--bg-deep);
   color: var(--text-primary);
@@ -182,7 +197,7 @@ body::after {
 }
 
 .nav a {
-  font-family: 'Orbitron', 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-display);
   font-size: 0.65rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -282,7 +297,7 @@ body::after {
 
 /* --- Card Titles --- */
 .card-title {
-  font-family: 'Orbitron', 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-display);
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -333,7 +348,7 @@ body::after {
 }
 
 .stat-value {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--carrier-font-display);
   font-size: 28px;
   font-weight: 700;
   color: var(--teal-light);
@@ -341,7 +356,7 @@ body::after {
 }
 
 .stat-label {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -364,7 +379,7 @@ body::after {
   clip-path: var(--chamfer-sm);
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   text-transform: uppercase;
   letter-spacing: 1px;
   background: rgba(45, 212, 191, 0.08);
@@ -397,7 +412,7 @@ body::after {
 .note-meta {
   display: flex;
   justify-content: space-between;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 10px;
   color: var(--text-dim);
   margin-bottom: 4px;
@@ -430,7 +445,7 @@ body::after {
 }
 
 .love-name {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--carrier-font-display);
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 1px;
@@ -474,7 +489,7 @@ body::after {
 }
 
 .hearth-name {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--carrier-font-display);
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--teal-light);
@@ -484,7 +499,7 @@ body::after {
 }
 
 .hearth-mood {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 14px;
   color: var(--text-dim);
   text-transform: uppercase;
@@ -495,7 +510,7 @@ body::after {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 12px;
   color: var(--teal-light);
   background: rgba(45, 212, 191, 0.06);
@@ -547,7 +562,7 @@ body::after {
   border: 1px solid var(--glass-border);
   background: var(--bg-card);
   color: var(--teal-light);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--carrier-font-family);
   font-size: 12px;
   outline: none;
   transition: border-color var(--transition-smooth);
@@ -561,7 +576,7 @@ body::after {
   border: 1px solid rgba(45, 212, 191, 0.3);
   background: rgba(45, 212, 191, 0.06);
   color: var(--teal-light);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -597,7 +612,7 @@ body::after {
 .date-label, .task-label { flex: 1; color: var(--text-primary); }
 
 .date-meta {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 10px;
   color: var(--text-dim);
   white-space: nowrap;
@@ -636,7 +651,7 @@ body::after {
 .tool-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; color: var(--teal-light); }
 .tool-desc { font-size: 11px; color: var(--text-dim); margin-bottom: 8px; line-height: 1.4; }
 .tool-link {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 10px;
   letter-spacing: 1px;
   color: var(--teal-light);
@@ -665,7 +680,7 @@ body::after {
   text-align: center;
   padding: 20px;
   color: var(--text-dim);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -765,7 +780,7 @@ body::after {
 
 /* --- Personality type (Companion page) --- */
 .personality-type {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--carrier-font-display);
   font-size: 48px;
   font-weight: 900;
   letter-spacing: 6px;
@@ -775,7 +790,7 @@ body::after {
 }
 
 .personality-label {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -788,7 +803,7 @@ body::after {
 .pillar-bar-label {
   display: flex;
   justify-content: space-between;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--carrier-font-mono);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;

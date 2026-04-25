@@ -50,6 +50,14 @@ export interface CarrierProfile {
   deployment: {
     dashboard_url?: string
   }
+  appearance?: {
+    font_family?: string
+    font_display?: string
+    font_mono?: string
+    accent_primary?: string
+    accent_secondary?: string
+    background_tone?: string
+  }
 }
 
 export const DEFAULT_CARRIER_PROFILE: CarrierProfile = {
@@ -72,6 +80,7 @@ export const DEFAULT_CARRIER_PROFILE: CarrierProfile = {
     label: 'companion',
   },
   deployment: {},
+  appearance: {},
 }
 
 /**
@@ -107,7 +116,31 @@ function mergeProfile(base: CarrierProfile, override: Partial<CarrierProfile>): 
     },
     relationship: { ...base.relationship, ...override.relationship },
     deployment: { ...base.deployment, ...override.deployment },
+    appearance: { ...(base.appearance ?? {}), ...(override.appearance ?? {}) },
   }
+}
+
+/**
+ * Render the carrier's appearance settings as a CSS snippet of custom properties
+ * on :root. Empty strings are skipped so the dashboard's defaults stay in effect.
+ *
+ * Served from GET /appearance.css on the gateway.
+ */
+export function renderAppearanceCss(profile: CarrierProfile): string {
+  const a = profile.appearance ?? {}
+  const lines: string[] = []
+  if (a.font_family)       lines.push(`  --carrier-font-family: ${a.font_family};`)
+  if (a.font_display)      lines.push(`  --carrier-font-display: ${a.font_display};`)
+  if (a.font_mono)         lines.push(`  --carrier-font-mono: ${a.font_mono};`)
+  if (a.accent_primary)    lines.push(`  --carrier-accent-primary: ${a.accent_primary};`)
+  if (a.accent_secondary)  lines.push(`  --carrier-accent-secondary: ${a.accent_secondary};`)
+  if (a.background_tone)   lines.push(`  --carrier-background-tone: ${a.background_tone};`)
+
+  if (lines.length === 0) {
+    return '/* No carrier appearance overrides configured. Dashboard defaults in effect. */\n'
+  }
+
+  return `/* Generated from CARRIER_PROFILE_JSON.appearance — restyle the dashboard without forking. */\n:root {\n${lines.join('\n')}\n}\n`
 }
 
 /**

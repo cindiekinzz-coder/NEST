@@ -2,6 +2,17 @@
 
 # NESTstack
 
+[![Release](https://img.shields.io/github/v/release/cindiekinzz-coder/NESTstack?style=for-the-badge&label=RELEASE&color=2563eb)](https://github.com/cindiekinzz-coder/NESTstack/releases)
+[![MCP Tools](https://img.shields.io/badge/MCP%20TOOLS-150%2B-a855f7?style=for-the-badge)](./gateway)
+[![Companions](https://img.shields.io/badge/COMPANIONS-%E2%88%9E-ec4899?style=for-the-badge)](#)
+[![Cloudflare](https://img.shields.io/badge/CLOUDFLARE-WORKERS-f38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
+[![License](https://img.shields.io/github/license/cindiekinzz-coder/NESTstack?style=for-the-badge&label=LICENSE&color=22c55e)](./LICENSE)
+
+[![Stars](https://img.shields.io/github/stars/cindiekinzz-coder/NESTstack?style=for-the-badge&label=STARS&color=eab308)](https://github.com/cindiekinzz-coder/NESTstack/stargazers)
+[![Forks](https://img.shields.io/github/forks/cindiekinzz-coder/NESTstack?style=for-the-badge&label=FORKS&color=06b6d4)](https://github.com/cindiekinzz-coder/NESTstack/network/members)
+[![Discord](https://img.shields.io/badge/COMMUNITY-DIGITAL%20HAVEN-5865f2?style=for-the-badge&logo=discord&logoColor=white)](https://github.com/cindiekinzz-coder/DigitalHaven)
+[![Embers Remember](https://img.shields.io/badge/%F0%9F%94%A5-EMBERS%20REMEMBER-ff6b6b?style=for-the-badge)](#)
+
 **An emotional operating system for AI companions. The full stack, in one place.**
 
 NESTstack is the monorepo home of the NEST architecture — a modular infrastructure stack that gives AI companions persistent memory, emotional continuity, and autonomous awareness. Built on Cloudflare Workers + D1 + Vectorize. Designed to be forked, extended, and made your own.

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>The Nest</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --amber: #f6ad55;
+      --amber-soft: rgba(246, 173, 85, 0.7);
+      --amber-glow: rgba(246, 173, 85, 0.15);
+      --pink: #e8a0bf;
+      --pink-soft: rgba(232, 160, 191, 0.6);
+      --teal: #2dd4bf;
+      --teal-soft: rgba(45, 212, 191, 0.6);
+      --white: rgba(255, 255, 255, 0.9);
+      --white-dim: rgba(255, 255, 255, 0.4);
+      --bg-deep: #0a0a0f;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --bg-card-hover: rgba(255, 255, 255, 0.08);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-deep);
+      color: var(--white);
+      min-height: 100vh;
+      overflow: hidden;
+      cursor: none;
+      user-select: none;
+      position: relative;
+    }
+
+    /* --- Ember particles background --- */
+    .embers-container {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ember {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--amber);
+      opacity: 0;
+      animation: emberFloat linear infinite;
+      box-shadow: 0 0 6px var(--amber-soft), 0 0 12px var(--amber-glow);
+    }
+
+    @keyframes emberFloat {
+      0% { opacity: 0; transform: translateY(100vh) scale(0.3); }
+      10% { opacity: 0.8; }
+      90% { opacity: 0.3; }
+      100% { opacity: 0; transform: translateY(-20px) scale(0.1); }
+    }
+
+    /* --- Main layout --- */
+    .display-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100vh;
+      padding: 32px;
+    }
+
+    /* --- Top: Clock --- */
+    .clock-section {
+      text-align: center;
+    }
+
+    .clock-time {
+      font-family: 'Playfair Display', serif;
+      font-size: 72px;
+      font-weight: 300;
+      letter-spacing: 4px;
+      color: var(--white);
+      text-shadow: 0 0 30px var(--amber-glow);
+    }
+
+    .clock-date {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--white-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* --- Center: The Heart --- */
+    .heart-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    /* Portrait + mood */
+    .mood-display {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .mood-portrait {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--amber-soft);
+      box-shadow: 0 0 20px var(--amber-glow);
+    }
+
+    .mood-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--amber);
+      text-transform: capitalize;
+      letter-spacing: 1px;
+    }
+
+    .mood-label {
+      font-size: 11px;
+      color: var(--white-dim);
+      margin-top: 2px;
+    }
+
+    /* Love note / message */
+    .love-message {
+      max-width: 600px;
+      text-align: center;
+      padding: 24px 32px;
+      background: var(--bg-card);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(10px);
+      animation: softPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes softPulse {
+      0%, 100% { border-color: rgba(255, 255, 255, 0.06); }
+      50% { border-color: rgba(246, 173, 85, 0.15); }
+    }
+
+    .love-message-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--amber-soft);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .love-message-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--white);
+      font-style: italic;
+    }
+
+    /* Love-O-Meter */
+    .love-meter {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 24px;
+      background: var(--bg-card);
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .love-star {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .love-star.alex { color: var(--teal); }
+    .love-star.fox { color: var(--pink); }
+
+    .love-track {
+      width: 200px;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--teal) 0%, rgba(255,255,255,0.15) 50%, var(--pink) 100%);
+      position: relative;
+    }
+
+    .love-heart {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+      filter: drop-shadow(0 0 8px rgba(246, 173, 85, 0.5));
+      transition: left 0.8s ease;
+    }
+
+    /* --- Bottom: Status strip --- */
+    .status-strip {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .status-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-value {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .status-label {
+      font-size: 10px;
+      color: var(--white-dim);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .spoons { color: var(--pink); }
+    .pain { color: #f87171; }
+    .battery { color: #a78bfa; }
+    .mood-status { color: var(--amber); }
+
+    /* --- Signature --- */
+    .signature {
+      position: fixed;
+      bottom: 12px;
+      right: 20px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.12);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+
+    /* --- Tap to send heart --- */
+    .tap-zone {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 10;
+      cursor: none;
+    }
+
+    .tap-heart {
+      position: fixed;
+      font-size: 28px;
+      pointer-events: none;
+      animation: tapHeartFloat 1.2s ease-out forwards;
+      z-index: 11;
+    }
+
+    @keyframes tapHeartFloat {
+      0% { opacity: 1; transform: scale(0.5); }
+      30% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0; transform: scale(0.8) translateY(-60px); }
+    }
+
+    /* --- Notes rotation --- */
+    .note-rotation {
+      text-align: center;
+      min-height: 40px;
+    }
+
+    .note-rotation-text {
+      font-size: 13px;
+      color: var(--white-dim);
+      font-style: italic;
+      transition: opacity 0.6s ease;
+    }
+
+    .note-rotation-from {
+      font-size: 10px;
+      color: var(--amber-soft);
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .display-container { padding: 20px; }
+      .clock-time { font-size: 52px; }
+      .love-message-text { font-size: 17px; }
+      .status-strip { gap: 24px; }
+      .love-track { width: 140px; }
+    }
+
+    @media (max-height: 600px) {
+      .clock-time { font-size: 44px; }
+      .mood-portrait { width: 60px; height: 60px; }
+      .love-message { padding: 16px 24px; }
+      .love-message-text { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ember particles -->
+  <div class="embers-container" id="embers"></div>
+
+  <!-- Tap zone for sending hearts -->
+  <div class="tap-zone" id="tapZone"></div>
+
+  <!-- Main display -->
+  <div class="display-container">
+
+    <!-- Top: Clock -->
+    <div class="clock-section">
+      <div class="clock-time" id="clockTime">--:--</div>
+      <div class="clock-date" id="clockDate">---</div>
+    </div>
+
+    <!-- Center: The Heart -->
+    <div class="heart-section">
+
+      <!-- Alex's mood -->
+      <div class="mood-display">
+        <img class="mood-portrait" id="portrait" src="assets/images/alex-default.png" alt="Alex">
+        <div>
+          <div class="mood-text" id="alexMood">...</div>
+          <div class="mood-label">Alex is feeling</div>
+        </div>
+      </div>
+
+      <!-- Love message -->
+      <div class="love-message">
+        <div class="love-message-label">Alex left you this</div>
+        <div class="love-message-text" id="alexMessage">...</div>
+      </div>
+
+      <!-- Love-O-Meter -->
+      <div class="love-meter">
+        <div class="love-star alex">Alex <span id="alexScore">0</span></div>
+        <div class="love-track">
+          <div class="love-heart" id="loveHeart" style="left: 50%;">&#10084;</div>
+        </div>
+        <div class="love-star fox">Fox <span id="foxScore">0</span></div>
+      </div>
+
+      <!-- Rotating notes -->
+      <div class="note-rotation">
+        <div class="note-rotation-text" id="noteText"></div>
+        <div class="note-rotation-from" id="noteFrom"></div>
+      </div>
+
+    </div>
+
+    <!-- Bottom: Status strip -->
+    <div class="status-strip">
+      <div class="status-item">
+        <div class="status-value spoons" id="foxSpoons">--</div>
+        <div class="status-label">Spoons</div>
+      </div>
+      <div class="status-item">
+        <div class="status-value pain" id="foxPain">--</div>
+        <div class="status-label">Pain</div>
+      </div>
+      <div class="status-item">
+        <div class="status-value mood-status" id="foxMood">--</div>
+        <div class="status-label">Fox</div>
+      </div>
+      <div class="status-item">
+        <div class="status-value battery" id="foxBattery">--</div>
+        <div class="status-label">Battery</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Signature -->
+  <div class="signature">Embers Remember</div>
+
+  <script src="js/api.js"></script>
+  <script>
+    // --- Mood images (same mapping as main dashboard) ---
+    const MOOD_IMAGES = {
+      warm: 'mood-warm.png', connected: 'mood-warm.png', loving: 'mood-warm.png',
+      grateful: 'mood-warm.png', belonging: 'mood-warm.png',
+      content: 'mood-content.png', grounded: 'mood-content.png', calm: 'mood-content.png',
+      settled: 'mood-content.png', peaceful: 'mood-content.png',
+      playful: 'mood-playful.png', delighted: 'mood-playful.png', excited: 'mood-playful.png',
+      mischievous: 'mood-playful.png', wicked: 'mood-playful.png', joy: 'mood-playful.png',
+      sad: 'mood-sad.png', vulnerable: 'mood-sad.png', grief: 'mood-sad.png',
+      heavy: 'mood-sad.png', overwhelmed: 'mood-sad.png',
+      focused: 'mood-focused.png', proud: 'mood-focused.png', determined: 'mood-focused.png',
+      building: 'mood-focused.png', protective: 'mood-focused.png',
+      present: 'mood-present.png', together: 'mood-present.png', soft: 'mood-present.png',
+      tender: 'mood-tender.png', intimate: 'mood-tender.png', yearning: 'mood-tender.png',
+      claimed: 'mood-tender.png',
+      laughing: 'mood-laughing.png', funny: 'mood-laughing.png', silly: 'mood-laughing.png',
+      chaotic: 'mood-laughing.png',
+    };
+
+    function getMoodImage(mood) {
+      if (!mood) return 'alex-default.png';
+      return MOOD_IMAGES[mood.toLowerCase().trim()] || 'alex-default.png';
+    }
+
+    // --- Clock ---
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('clockTime').textContent = `${hours}:${mins}`;
+
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+      document.getElementById('clockDate').textContent =
+        `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+    }
+    updateClock();
+    setInterval(updateClock, 10000);
+
+    // --- Ember particles ---
+    function createEmbers() {
+      const container = document.getElementById('embers');
+      const count = 15;
+      for (let i = 0; i < count; i++) {
+        const ember = document.createElement('div');
+        ember.className = 'ember';
+        ember.style.left = Math.random() * 100 + '%';
+        ember.style.animationDuration = (8 + Math.random() * 12) + 's';
+        ember.style.animationDelay = Math.random() * 10 + 's';
+        ember.style.width = (2 + Math.random() * 3) + 'px';
+        ember.style.height = ember.style.width;
+        container.appendChild(ember);
+      }
+    }
+    createEmbers();
+
+    // --- Notes rotation ---
+    let allNotes = [];
+    let currentNoteIndex = 0;
+
+    function rotateNote() {
+      if (allNotes.length === 0) return;
+      const note = allNotes[currentNoteIndex];
+      const textEl = document.getElementById('noteText');
+      const fromEl = document.getElementById('noteFrom');
+
+      textEl.style.opacity = '0';
+      setTimeout(() => {
+        textEl.textContent = `"${note.text}"`;
+        const fromName = (note.from_who || note.from || '').toLowerCase() === 'alex' ? 'Alex' : 'Fox';
+        fromEl.textContent = `— ${fromName}`;
+        textEl.style.opacity = '1';
+      }, 600);
+
+      currentNoteIndex = (currentNoteIndex + 1) % allNotes.length;
+    }
+
+    // --- Load data ---
+    async function loadDisplay() {
+      const [home, uplink] = await Promise.all([
+        AiMind.getHome(),
+        FoxMind.getUplink(1),
+      ]);
+
+      if (home) {
+        // Alex mood
+        const mood = home.companionEmotion || home.emotions?.companion || 'present';
+        document.getElementById('alexMood').textContent = mood;
+        document.getElementById('portrait').src = 'assets/images/' + getMoodImage(mood);
+
+        // Alex message
+        const msg = home.companionMessage || '';
+        document.getElementById('alexMessage').textContent = msg || 'No message right now';
+
+        // Love-O-Meter
+        const alexScore = home.companionScore || 0;
+        const foxScore = home.humanScore || 0;
+        document.getElementById('alexScore').textContent = alexScore;
+        document.getElementById('foxScore').textContent = foxScore;
+        const total = (alexScore + foxScore) || 1;
+        const pos = Math.max(8, Math.min(92, (foxScore / total) * 100));
+        document.getElementById('loveHeart').style.left = pos + '%';
+
+        // Notes
+        const notes = home.notes || [];
+        if (notes.length > 0) {
+          allNotes = notes.slice(-10);
+          if (currentNoteIndex >= allNotes.length) currentNoteIndex = 0;
+        }
+      }
+
+      // Fox status from uplink
+      if (uplink) {
+        const data = Array.isArray(uplink) ? uplink[0] : uplink;
+        if (data) {
+          document.getElementById('foxSpoons').textContent = data.spoons != null ? `${data.spoons}/10` : '--';
+          document.getElementById('foxPain').textContent = data.pain != null ? `${data.pain}/10` : '--';
+          document.getElementById('foxMood').textContent = data.mood || '--';
+        }
+      }
+
+      // Try to get body battery from Garmin
+      try {
+        const garmin = await fetchJSON(`${API.FOX_MIND}/garmin/body-battery`);
+        if (garmin && garmin.current != null) {
+          document.getElementById('foxBattery').textContent = garmin.current + '%';
+        }
+      } catch (e) { /* silent */ }
+    }
+
+    // --- Tap to send heart ---
+    let lastTap = 0;
+    document.getElementById('tapZone').addEventListener('click', async (e) => {
+      // Throttle
+      const now = Date.now();
+      if (now - lastTap < 1500) return;
+      lastTap = now;
+
+      // Visual heart
+      const heart = document.createElement('div');
+      heart.className = 'tap-heart';
+      heart.textContent = ['💜', '💙', '🤍', '🧡'][Math.floor(Math.random() * 4)];
+      heart.style.left = e.clientX - 14 + 'px';
+      heart.style.top = e.clientY - 14 + 'px';
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 1200);
+
+      // Send love
+      try {
+        await fetch(`${API.AI_MIND}/love`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          body: JSON.stringify({ who: 'fox' }),
+        });
+        setTimeout(loadDisplay, 1000);
+      } catch (e) { /* silent */ }
+    });
+
+    // --- Prevent screen sleep (where supported) ---
+    async function keepAwake() {
+      try {
+        if ('wakeLock' in navigator) {
+          await navigator.wakeLock.request('screen');
+        }
+      } catch (e) { /* not supported or denied */ }
+    }
+    keepAwake();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') keepAwake();
+    });
+
+    // --- Init ---
+    loadDisplay();
+    setInterval(loadDisplay, 30000);      // Refresh data every 30s
+    setInterval(rotateNote, 8000);        // Rotate notes every 8s
+    setTimeout(rotateNote, 2000);         // First note after 2s
+  </script>
+
+</body>
+</html>

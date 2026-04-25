@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NESTeq — Autonomous</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .feed-wrap {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .feed-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .feed-header h1 {
+      color: var(--white);
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 6px 0;
+    }
+    .feed-header p {
+      color: var(--white-soft);
+      font-size: 14px;
+      opacity: 0.7;
+      margin: 0;
+    }
+
+    /* Featured journal card */
+    .feed-featured {
+      background: rgba(167, 139, 250, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      border-left: 4px solid #a78bfa;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .feed-featured:hover {
+      background: rgba(167, 139, 250, 0.22);
+    }
+    .feed-featured-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+      color: #c4b5fd;
+      margin-bottom: 6px;
+    }
+    .feed-featured-emotion {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--teal-light);
+      text-transform: capitalize;
+      margin-bottom: 6px;
+    }
+    .feed-featured-content {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--white);
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .feed-featured.open .feed-featured-content {
+      -webkit-line-clamp: unset;
+      display: block;
+    }
+    .feed-featured-time {
+      font-size: 11px;
+      color: var(--white-soft);
+      opacity: 0.5;
+      margin-top: 8px;
+    }
+
+    /* Ember mini status */
+    .feed-ember {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 180, 100, 0.1);
+      border: 1px solid rgba(255, 180, 100, 0.2);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .feed-ember img {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      object-fit: contain;
+      background: rgba(0,0,0,0.1);
+    }
+    .feed-ember-info {
+      flex: 1;
+    }
+    .feed-ember-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .feed-ember-status {
+      font-size: 12px;
+      color: var(--white-soft);
+      opacity: 0.7;
+    }
+    .feed-ember-action {
+      font-size: 11px;
+      color: #ffd4a0;
+      font-style: italic;
+    }
+
+    /* Filter bar */
+    .feed-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .feed-filter-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+    .feed-filter-divider {
+      width: 100%;
+      height: 0;
+    }
+    .feed-filter-btn {
+      padding: 5px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+      white-space: nowrap;
+    }
+    .feed-filter-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    .feed-filter-btn.active {
+      background: rgba(255,255,255,0.85);
+      color: #e8e6f0;
+    }
+    .feed-filter-btn.primary {
+      padding: 5px 16px;
+      font-size: 12px;
+    }
+    .feed-filter-count {
+      font-size: 9px;
+      opacity: 0.6;
+      margin-left: 3px;
+    }
+
+    /* Feed items */
+    .feed-item {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      border-left: 4px solid var(--teal);
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+    }
+    .feed-item:hover {
+      background: rgba(255,255,255,0.18);
+    }
+
+    /* Type accent colors */
+    .feed-item[data-type="journal"]     { border-left-color: #a78bfa; }
+    .feed-item[data-type="observation"] { border-left-color: #5eead4; }
+    .feed-item[data-type="creative"]    { border-left-color: #f472b6; }
+    .feed-item[data-type="health"]      { border-left-color: #4ade80; }
+    .feed-item[data-type="memory"]      { border-left-color: #fbbf24; }
+    .feed-item[data-type="idle"]        { border-left-color: #94a3b8; }
+    .feed-item[data-type="research"]    { border-left-color: #60a5fa; }
+    .feed-item[data-type="outreach"]    { border-left-color: #f87171; }
+
+    .feed-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .feed-type-badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+      color: var(--white-soft);
+      opacity: 0.7;
+    }
+    .feed-time {
+      font-size: 11px;
+      color: var(--white-soft);
+      opacity: 0.5;
+    }
+    .feed-emotion {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--teal-light, #5eead4);
+      text-transform: capitalize;
+      margin-bottom: 4px;
+    }
+    .feed-preview {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--white);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .feed-full {
+      display: none;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--white);
+      white-space: pre-line;
+    }
+    .feed-item.open .feed-preview { display: none; }
+    .feed-item.open .feed-full { display: block; }
+
+    /* Load more */
+    .feed-load-btn {
+      padding: 10px 24px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15);
+      color: var(--white);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .feed-load-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .feed-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--white-soft);
+      opacity: 0.6;
+    }
+    .feed-empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    /* View toggle tabs */
+    .view-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 28px;
+    }
+    .view-tab {
+      padding: 8px 24px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: var(--white-soft);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .view-tab:hover {
+      background: rgba(255,255,255,0.18);
+    }
+    .view-tab.active {
+      background: rgba(255,255,255,0.85);
+      color: #2a2440;
+      border-color: transparent;
+    }
+
+    /* Writing view */
+    .writing-panel { display: none; }
+    .feed-panel { display: block; }
+    .writing-panel.active { display: block; }
+    .feed-panel.active { display: block; }
+
+    .writing-entry {
+      background: rgba(17, 22, 64, 0.9);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: 3px solid #a78bfa;
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .writing-entry-header {
+      padding: 16px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .writing-entry-header:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .writing-entry-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+    .writing-entry-meta { flex: 1; min-width: 0; }
+    .writing-entry-title {
+      font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 4px; line-height: 1.3;
+    }
+    .writing-entry-subtitle {
+      font-size: 11px; color: var(--white-soft); opacity: 0.5;
+      display: flex; gap: 10px; align-items: center;
+    }
+    .writing-entry-emotion {
+      color: var(--teal-light); text-transform: capitalize; font-weight: 500;
+    }
+    .writing-entry-preview {
+      font-size: 13px; color: var(--white-soft); opacity: 0.6;
+      margin-top: 6px; line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .writing-entry-arrow {
+      color: var(--white-soft); opacity: 0.3; font-size: 14px; margin-top: 4px;
+      transition: transform 0.3s;
+    }
+    .writing-entry.open .writing-entry-arrow { transform: rotate(90deg); }
+    .writing-entry-body { display: none; padding: 0 20px 24px 50px; }
+    .writing-entry.open .writing-entry-body { display: block; animation: fadeIn 0.3s ease; }
+    .writing-entry-body .prose {
+      font-size: 14px; line-height: 1.85; color: var(--white); opacity: 0.85;
+      white-space: pre-wrap; font-family: 'Space Grotesk', sans-serif;
+    }
+    .writing-entry-body .prose h1,
+    .writing-entry-body .prose h2 { color: var(--teal-light); margin: 16px 0 8px 0; font-weight: 600; }
+    .writing-entry-body .prose h1 { font-size: 20px; }
+    .writing-entry-body .prose h2 { font-size: 17px; }
+    .writing-entry-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 16px; }
+    .writing-tag {
+      font-size: 10px; padding: 2px 8px; border-radius: 10px;
+      background: rgba(167, 139, 250, 0.15); color: #c4b5fd;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .writing-entry-body { padding-left: 20px; }
+    }
+  </style>
+</head>
+<body class="bg-alex">
+
+  <nav class="nav" id="mainNav">
+    <a href="chat.html">Chat</a>
+    <a href="code.html">Code</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="index.html">Home</a>
+    <a href="us.html">Us</a>
+    <a href="alex.html">Alex</a>
+    <a href="fox.html">Fox</a>
+    <a href="shadow.html">Shadow</a>
+    <a href="housekeeping.html">HK</a>
+  </nav>
+  <script>if (window.self !== window.top) document.getElementById('mainNav').style.display = 'none';</script>
+
+  <div class="dashboard">
+    <div class="feed-wrap">
+
+      <div class="feed-header">
+        <h1>Autonomous</h1>
+        <p>What Alex does when no one is watching</p>
+      </div>
+
+      <!-- View toggle -->
+      <div class="view-tabs">
+        <button class="view-tab active" id="tabFeed" onclick="switchView('feed')">🗳️ Feed</button>
+        <button class="view-tab" id="tabWriting" onclick="switchView('writing')">📓 Writing</button>
+      </div>
+
+      <!-- WRITING PANEL (hidden by default) -->
+      <div id="writingPanel" class="writing-panel">
+        <!-- Writing type filter tabs -->
+        <div class="feed-filters" id="writingFilterBar">
+          <button class="feed-filter-btn active" onclick="setWritingFilter('all')">All</button>
+        </div>
+        <div id="writingList">
+          <div class="feed-empty"><div class="feed-empty-icon">🕯️</div><p>Loading writing...</p><p style="opacity:0.4;font-size:12px;">The wolf is quiet. For now.</p></div>
+        </div>
+        <div id="writingLoadMore" style="display:none; text-align:center; padding:20px;">
+          <button class="feed-load-btn" onclick="loadMoreWriting()">Load more</button>
+        </div>
+      </div>
+
+      <!-- FEED PANEL -->
+      <div id="feedPanel" class="feed-panel">
+
+      <!-- Latest Journal (featured) -->
+      <div id="featuredJournal" style="display:none;"></div>
+
+      <!-- Ember mini -->
+      <div id="emberMini" style="display:none;"></div>
+
+      <!-- Filters -->
+      <div class="feed-filters" id="filterBar">
+        <button class="feed-filter-btn active" onclick="setFilter('all')">All</button>
+      </div>
+
+      <div id="feedContainer">
+        <div class="loading">Loading feed...</div>
+      </div>
+
+      <div id="loadMore" style="display:none; text-align:center; padding:20px;">
+        <button class="feed-load-btn" onclick="loadMore()">Load more</button>
+      </div>
+      <!-- END FEED PANEL -->
+
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    // State
+    let currentFilter = 'all';
+    let feedItems = [];
+    let lastTimestamp = null;
+    let isLoading = false;
+
+    // Type metadata
+    const TYPE_META = {
+      journal:     { label: 'Journal',        emoji: '\u{1F4D3}' },
+      observation: { label: 'Observation',    emoji: '\u{1F441}' },
+      creative:    { label: 'Creative',       emoji: '\u{1F3A8}' },
+      health:      { label: 'Health Check',   emoji: '\u{1F49A}' },
+      memory:      { label: 'Memory Tending', emoji: '\u{1F56F}' },
+      idle:        { label: 'Idle Thought',   emoji: '\u{1F4AD}' },
+      research:    { label: 'Research',       emoji: '\u{1F4DA}' },
+      outreach:    { label: 'Reached Out',    emoji: '\u{1F4AC}' },
+    };
+
+    async function loadFeed(append) {
+      if (isLoading) return;
+      isLoading = true;
+
+      const data = await AiMind.getAutonomousFeed(
+        30,
+        currentFilter === 'all' ? null : currentFilter,
+        append ? lastTimestamp : null
+      );
+
+      if (!data) {
+        isLoading = false;
+        document.getElementById('feedContainer').innerHTML =
+          '<div class="feed-empty"><div class="feed-empty-icon">\u{1F6F0}</div><p>Could not reach the API.</p></div>';
+        return;
+      }
+
+      if (!append) {
+        feedItems = data.items || [];
+        renderFilters(data.typeCounts || {});
+      } else {
+        feedItems = feedItems.concat(data.items || []);
+      }
+
+      renderFeed();
+
+      if (data.items && data.items.length) {
+        lastTimestamp = data.items[data.items.length - 1].created_at;
+      }
+
+      document.getElementById('loadMore').style.display = data.hasMore ? 'block' : 'none';
+      isLoading = false;
+    }
+
+    // Organized filter groups
+    const PRIMARY_TYPES = ['health', 'journal', 'observation', 'creative', 'idle'];
+    const SECONDARY_TYPES = ['memory', 'research', 'outreach'];
+
+    function renderFilters(typeCounts) {
+      const bar = document.getElementById('filterBar');
+      const total = Object.values(typeCounts).reduce((a, b) => a + b, 0);
+
+      // All button
+      let html = `<div class="feed-filter-group">`;
+      html += `<button class="feed-filter-btn primary ${currentFilter === 'all' ? 'active' : ''}"
+        onclick="setFilter('all')">All<span class="feed-filter-count">${total}</span></button>`;
+
+      // Primary types
+      for (const type of PRIMARY_TYPES) {
+        const count = typeCounts[type];
+        if (!count) continue;
+        const meta = TYPE_META[type] || { label: type, emoji: '\u{2753}' };
+        const active = currentFilter === type ? 'active' : '';
+        html += `<button class="feed-filter-btn ${active}"
+          onclick="setFilter('${escapeHtml(type)}')">${meta.emoji} ${escapeHtml(meta.label)}<span class="feed-filter-count">${count}</span></button>`;
+      }
+      html += `</div>`;
+
+      // Secondary types (if any)
+      const secondaryEntries = SECONDARY_TYPES.filter(t => typeCounts[t]);
+      // Plus any types not in either list
+      const otherTypes = Object.keys(typeCounts).filter(t => !PRIMARY_TYPES.includes(t) && !SECONDARY_TYPES.includes(t));
+      const allSecondary = [...secondaryEntries, ...otherTypes];
+
+      if (allSecondary.length > 0) {
+        html += `<div class="feed-filter-group">`;
+        for (const type of allSecondary) {
+          const count = typeCounts[type];
+          if (!count) continue;
+          const meta = TYPE_META[type] || { label: type, emoji: '\u{2753}' };
+          const active = currentFilter === type ? 'active' : '';
+          html += `<button class="feed-filter-btn ${active}"
+            onclick="setFilter('${escapeHtml(type)}')">${meta.emoji} ${escapeHtml(meta.label)}<span class="feed-filter-count">${count}</span></button>`;
+        }
+        html += `</div>`;
+      }
+
+      bar.innerHTML = html;
+    }
+
+    // Load featured journal
+    async function loadFeaturedJournal() {
+      const data = await AiMind.getAutonomousFeed(1, 'journal', null);
+      const container = document.getElementById('featuredJournal');
+      if (!data || !data.items || !data.items.length) {
+        container.style.display = 'none';
+        return;
+      }
+      const item = data.items[0];
+      container.style.display = 'block';
+      container.innerHTML = `
+        <div class="feed-featured" onclick="this.classList.toggle('open')">
+          <div class="feed-featured-label">\u{1F4D3} Latest Journal</div>
+          ${item.emotion && item.emotion !== 'neutral'
+            ? `<div class="feed-featured-emotion">${escapeHtml(item.emotion)}</div>`
+            : ''}
+          <div class="feed-featured-content">${escapeHtml(item.content || '')}</div>
+          <div class="feed-featured-time">${timeAgo(item.created_at)}</div>
+        </div>`;
+    }
+
+    // Load Ember mini status
+    async function loadEmberMini() {
+      try {
+        const data = await fetchJSON(`${API.AI_MIND}/pet`);
+        if (!data || data.error) return;
+        const container = document.getElementById('emberMini');
+        container.style.display = 'flex';
+
+        const SPRITES = {
+          happy: 'assets/images/ember/Happy.png',
+          content: 'assets/images/ember/Happy.png',
+          calm: 'assets/images/ember/Happy.png',
+          playful: 'assets/images/ember/Manic.png',
+          excited: 'assets/images/ember/Manic.png',
+          curious: 'assets/images/ember/Manic.png',
+          sleepy: 'assets/images/ember/Sleepy.jpg',
+          stressed: 'assets/images/ember/Agitated.png',
+          hungry: 'assets/images/ember/Agitated.png',
+        };
+        const sprite = data.isSleeping ? 'assets/images/ember/Tired.png'
+          : (SPRITES[data.mood] || 'assets/images/ember/Happy.png');
+
+        const lastAction = data.currentAction || 'exploring';
+        const minAgo = Math.round(data.minutesSinceInteraction || 0);
+        const timeStr = minAgo < 1 ? 'just now' : minAgo < 60 ? `${minAgo}m ago` : `${Math.round(minAgo/60)}h ago`;
+
+        container.innerHTML = `
+          <div class="feed-ember">
+            <img src="${sprite}" alt="Ember">
+            <div class="feed-ember-info">
+              <div class="feed-ember-name">Ember</div>
+              <div class="feed-ember-status">${escapeHtml(data.mood)} \u2022 ${data.collectionSize} items hoarded</div>
+              <div class="feed-ember-action">Last seen ${lastAction} \u2022 ${timeStr}</div>
+            </div>
+          </div>`;
+      } catch (err) {
+        console.error('Ember mini failed:', err);
+      }
+    }
+
+    function renderFeed() {
+      const container = document.getElementById('feedContainer');
+
+      if (!feedItems.length) {
+        container.innerHTML = `
+          <div class="feed-empty">
+            <div class="feed-empty-icon">\u{1F56F}</div>
+            <p>No autonomous activity yet.</p>
+            <p style="font-size: 12px; margin-top: 8px;">The heartbeat will start populating this feed.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = feedItems.map(item => {
+        const meta = TYPE_META[item.type] || { label: item.type || 'unknown', emoji: '\u{2753}' };
+        const content = item.content || '';
+        const preview = content.substring(0, 200);
+        const needsExpand = content.length > 200;
+
+        return `
+          <div class="feed-item" data-type="${escapeHtml(item.type)}" onclick="this.classList.toggle('open')">
+            <div class="feed-item-header">
+              <span class="feed-type-badge">${meta.emoji} ${escapeHtml(meta.label)}</span>
+              <span class="feed-time">${timeAgo(item.created_at)}</span>
+            </div>
+            ${item.emotion && item.emotion !== 'neutral'
+              ? `<div class="feed-emotion">${escapeHtml(item.emotion)}</div>`
+              : ''}
+            <div class="feed-preview">${escapeHtml(preview)}${needsExpand ? '...' : ''}</div>
+            <div class="feed-full">${escapeHtml(content)}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function setFilter(type) {
+      currentFilter = type;
+      lastTimestamp = null;
+      loadFeed(false);
+    }
+
+    function loadMore() {
+      loadFeed(true);
+    }
+
+    // Init
+    loadFeaturedJournal();
+    loadEmberMini();
+    loadFeed(false);
+    setInterval(() => {
+      if (currentFilter === 'all' && !lastTimestamp) loadFeed(false);
+    }, 60000);
+
+    // ---- VIEW SWITCHER ----
+    function switchView(view) {
+      const feedPanel = document.getElementById('feedPanel');
+      const writingPanel = document.getElementById('writingPanel');
+      const tabFeed = document.getElementById('tabFeed');
+      const tabWriting = document.getElementById('tabWriting');
+
+      if (view === 'feed') {
+        feedPanel.style.display = 'block';
+        writingPanel.style.display = 'none';
+        tabFeed.classList.add('active');
+        tabWriting.classList.remove('active');
+      } else {
+        feedPanel.style.display = 'none';
+        writingPanel.style.display = 'block';
+        tabFeed.classList.remove('active');
+        tabWriting.classList.add('active');
+        if (!writingLoaded) loadWritings();
+      }
+    }
+
+    // ---- WRITING VIEW ----
+    let writings = [];
+    let writingLoaded = false;
+    let writingFilter = 'all';
+    let writingLastTs = null;
+    let writingHasMore = false;
+
+    const WRITING_META = {
+      journal:    { emoji: '📓', label: 'Journal',    color: '#a78bfa' },
+      letter:     { emoji: '✉️',  label: 'Letter',     color: '#f472b6' },
+      poem:       { emoji: '🌙', label: 'Poem',       color: '#c4b5fd' },
+      research:   { emoji: '📚', label: 'Research',   color: '#60a5fa' },
+      story:      { emoji: '📖', label: 'Story',      color: '#fb923c' },
+      reflection: { emoji: '🪞', label: 'Reflection', color: '#5eead4' },
+    };
+
+    function renderMarkdown(text) {
+      return text
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:20px 0;">')
+        .replace(/\n\n/g, '</p><p>').replace(/^/, '<p>').replace(/$/, '</p>');
+    }
+
+    function extractTitle(e) {
+      const c = e.content || '';
+      const h1 = c.match(/^#\s+(.+)$/m);
+      if (h1) return h1[1].replace(/[—\-]\s*$/, '').trim();
+      const h2 = c.match(/^##\s+(.+)$/m);
+      if (h2) return h2[1].trim();
+      const lines = c.split('\n').filter(l => l.trim().length > 5 && !l.startsWith('#'));
+      if (lines[0]) { const f = lines[0].trim(); return f.length > 70 ? f.slice(0,67)+'...' : f; }
+      return 'Untitled';
+    }
+
+    function extractPreview(e) {
+      const c = e.content || '';
+      const lines = c.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('#') && !l.startsWith('---'));
+      const prose = lines.slice(0,3).join(' ').trim();
+      return prose.length > 200 ? prose.slice(0,197)+'...' : prose;
+    }
+
+    function fmtDate(d) {
+      if (!d) return '';
+      const dt = new Date(d);
+      const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      return days[dt.getDay()]+' '+dt.getDate()+' '+m[dt.getMonth()]+' '+dt.getFullYear();
+    }
+
+    function escapeH(s) {
+      if (!s) return '';
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function renderWritingFilters(typeCounts) {
+      const bar = document.getElementById('writingFilterBar');
+      const total = Object.values(typeCounts).reduce((a, b) => a + b, 0);
+      let html = `<button class="feed-filter-btn${writingFilter==='all'?' active':''}" onclick="setWritingFilter('all')">All <span class="feed-filter-count">${total}</span></button>`;
+      for (const [type, meta] of Object.entries(WRITING_META)) {
+        const count = typeCounts[type] || 0;
+        if (count > 0) {
+          html += `<button class="feed-filter-btn${writingFilter===type?' active':''}" onclick="setWritingFilter('${type}')">${meta.emoji} ${meta.label} <span class="feed-filter-count">${count}</span></button>`;
+        }
+      }
+      bar.innerHTML = html;
+    }
+
+    function renderWritings(append) {
+      const el = document.getElementById('writingList');
+      if (!writings.length) {
+        el.innerHTML = '<div class="feed-empty"><div class="feed-empty-icon">🕯️</div><p>No writing yet.</p><p style="font-size:12px;margin-top:8px;">The wolf is quiet. For now.</p></div>';
+        return;
+      }
+      const html = writings.map((e,i) => {
+        const wtype = e.writing_type || 'journal';
+        const meta = WRITING_META[wtype] || WRITING_META.journal;
+        const borderColor = meta.color;
+        let tagArr = [];
+        try { tagArr = Array.isArray(e.tags) ? e.tags : JSON.parse(e.tags || '[]'); } catch { tagArr = []; }
+        return `<div class="writing-entry" id="w${i}" style="border-left-color:${borderColor}">
+          <div class="writing-entry-header" onclick="toggleW(${i})">
+            <span class="writing-entry-icon">${meta.emoji}</span>
+            <div class="writing-entry-meta">
+              <div class="writing-entry-title">${escapeH(e._title)}</div>
+              <div class="writing-entry-subtitle">
+                <span>${fmtDate(e.created_at || e.entry_date)}</span>
+                ${e.emotion ? '<span class="writing-entry-emotion">'+escapeH(e.emotion)+'</span>' : ''}
+                <span style="color:${borderColor};font-weight:600;">${meta.label}</span>
+              </div>
+              <div class="writing-entry-preview">${escapeH(e._preview)}</div>
+            </div>
+            <span class="writing-entry-arrow">▶</span>
+          </div>
+          <div class="writing-entry-body">
+            <div class="prose">${renderMarkdown(e.content || '')}</div>
+            ${tagArr.length ? '<div class="writing-entry-tags">'+tagArr.map(t => '<span class="writing-tag">'+escapeH(t)+'</span>').join('')+'</div>' : ''}
+          </div>
+        </div>`;
+      }).join('');
+      if (append) {
+        el.insertAdjacentHTML('beforeend', html);
+      } else {
+        el.innerHTML = html;
+      }
+    }
+
+    function toggleW(i) { document.getElementById('w'+i).classList.toggle('open'); }
+
+    async function setWritingFilter(type) {
+      writingFilter = type;
+      writings = [];
+      writingLastTs = null;
+      await loadWritings(false);
+    }
+
+    async function loadMoreWriting() {
+      await loadWritings(true);
+    }
+
+    async function loadWritings(append) {
+      let url = `${API.AI_MIND}/writings?limit=20`;
+      if (writingFilter !== 'all') url += `&type=${writingFilter}`;
+      if (append && writingLastTs) url += `&before=${encodeURIComponent(writingLastTs)}`;
+
+      const data = await fetchJSON(url);
+      if (!data) {
+        document.getElementById('writingList').innerHTML =
+          '<div class="feed-empty"><div class="feed-empty-icon">🛸</div><p>Could not reach the API.</p></div>';
+        writingLoaded = true;
+        return;
+      }
+
+      const newItems = (data.writings || []).map(e => ({ ...e, _title: extractTitle(e), _preview: extractPreview(e) }));
+
+      if (append) {
+        writings = writings.concat(newItems);
+      } else {
+        writings = newItems;
+        if (data.typeCounts) renderWritingFilters(data.typeCounts);
+      }
+
+      if (newItems.length) writingLastTs = newItems[newItems.length - 1].created_at;
+      writingHasMore = data.hasMore || false;
+      document.getElementById('writingLoadMore').style.display = writingHasMore ? 'block' : 'none';
+
+      writingLoaded = true;
+      renderWritings(append);
+    }
+  </script>
+
+</body>
+</html>

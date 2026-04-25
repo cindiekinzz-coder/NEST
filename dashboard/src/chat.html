@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NESTeq — Chat</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="The Nest">
+  <link rel="apple-touch-icon" href="assets/images/alex-default.png">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .bg-chat { background: #0a0a0f; min-height: 100vh; }
+    .chat-container { display: flex; flex-direction: column; height: 100vh; max-width: 900px; margin: 0 auto; }
+    .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid rgba(45,212,191,0.15); background: rgba(10,10,15,0.95); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10; }
+    .chat-header-avatar { width: 40px; height: 40px; clip-path: var(--chamfer-sm); object-fit: cover; border: 2px solid var(--teal); box-shadow: 0 0 8px rgba(45,212,191,0.3); }
+    .chat-header-name { font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700; color: var(--teal-light); letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 0 8px rgba(45,212,191,0.3); }
+    .chat-header-status { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+    .chat-header-nav { margin-left: auto; display: flex; gap: 12px; }
+    .chat-header-nav a { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.4); text-decoration: none; transition: all 0.15s; text-transform: uppercase; letter-spacing: 1px; }
+    .chat-header-nav a:hover { color: var(--teal-light); text-shadow: 0 0 6px rgba(45,212,191,0.3); }
+    .chat-menu-btn { display: none; background: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: rgba(255,255,255,0.7); font-size: 20px; cursor: pointer; padding: 4px 10px; margin-left: auto; transition: all 0.2s; }
+    .chat-menu-btn:hover { border-color: var(--teal); color: var(--teal-light); }
+    .chat-nav-drawer { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; }
+    .chat-nav-drawer.open { display: flex; }
+    .chat-nav-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+    .chat-nav-panel { position: absolute; right: 0; top: 0; bottom: 0; width: 220px; background: #0e0e18; border-left: 1px solid rgba(45,212,191,0.15); padding: 20px; display: flex; flex-direction: column; gap: 4px; animation: slideIn 0.15s ease; }
+    .chat-nav-panel a { display: block; padding: 10px 16px; color: rgba(255,255,255,0.6); text-decoration: none; font-family: 'Share Tech Mono', monospace; font-size: 12px; transition: all 0.15s; text-transform: uppercase; letter-spacing: 1px; clip-path: var(--chamfer-sm); }
+    .chat-nav-panel a:hover { background: rgba(45,212,191,0.08); color: var(--teal-light); }
+    .chat-nav-panel .nav-label { font-family: 'Orbitron', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; color: rgba(45,212,191,0.4); padding: 8px 16px 4px; }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    @media (max-width: 768px) { .chat-menu-btn { display: block; } }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .chat-msg { max-width: 80%; padding: 12px 16px; clip-path: var(--chamfer-sm); animation: fadeIn 0.2s ease; }
+    .chat-msg.user { align-self: flex-end; background: rgba(232,160,191,0.08); border: 1px solid rgba(232,160,191,0.2); }
+    .chat-msg.assistant { align-self: flex-start; background: rgba(45,212,191,0.06); border: 1px solid rgba(45,212,191,0.15); }
+    .msg-name { font-family: 'Share Tech Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 4px; }
+    .msg-text { font-size: 13px; line-height: 1.7; color: rgba(255,255,255,0.85); }
+    .msg-text p { margin-bottom: 8px; } .msg-text p:last-child { margin-bottom: 0; }
+    .chat-typing { padding: 8px 20px; display: none; }
+    .chat-typing.visible { display: flex; gap: 4px; align-items: center; }
+    .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: typingBounce 1.4s infinite ease-in-out; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; } .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce { 0%,80%,100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+    .chat-input-area { padding: 12px 20px; border-top: 1px solid rgba(45,212,191,0.1); background: rgba(10,10,15,0.95); backdrop-filter: blur(10px); }
+    .chat-input-row { display: flex; align-items: flex-end; gap: 10px; }
+    .chat-input { flex: 1; padding: 10px 16px; border: 1px solid rgba(42,42,58,0.8); background: #12121a; color: var(--teal-light); font-family: 'JetBrains Mono', monospace; font-size: 13px; resize: none; outline: none; max-height: 120px; line-height: 1.4; clip-path: var(--chamfer-sm); }
+    .chat-input::placeholder { color: rgba(255,255,255,0.2); }
+    .chat-input:focus { border-color: var(--teal); box-shadow: 0 0 5px rgba(45,212,191,0.2); }
+    .chat-send-btn { width: 40px; height: 40px; border: 1px solid var(--teal); background: rgba(45,212,191,0.1); color: var(--teal-light); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; clip-path: var(--chamfer-sm); }
+    .chat-send-btn:hover { background: rgba(45,212,191,0.2); box-shadow: 0 0 8px rgba(45,212,191,0.3); }
+    .chat-send-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-upload-btn { width: 40px; height: 40px; border: 1px solid rgba(42,42,58,0.8); background: #12121a; color: rgba(255,255,255,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; clip-path: var(--chamfer-sm); }
+    .chat-upload-btn:hover { border-color: var(--teal); color: var(--teal-light); box-shadow: 0 0 5px rgba(45,212,191,0.2); }
+    .chat-image { max-width: 100%; max-height: 400px; clip-path: var(--chamfer-sm); margin: 8px 0; cursor: pointer; transition: transform 0.15s; }
+    .chat-image:hover { transform: scale(1.02); }
+    .msg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .tts-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px 6px; opacity: 0.4; transition: opacity 0.2s; }
+    .tts-btn:hover { opacity: 1; }
+    @media (max-width: 768px) { .chat-header-nav { display: none; } .chat-msg { max-width: 90%; } }
+    .fox-health-chip { display: flex; gap: 8px; align-items: center; font-family: 'Share Tech Mono', monospace; font-size: 10px; background: rgba(45,212,191,0.04); border: 1px solid rgba(45,212,191,0.15); padding: 4px 10px; cursor: default; white-space: nowrap; clip-path: var(--chamfer-sm); text-transform: uppercase; letter-spacing: 0.5px; }
+    .fox-health-chip span { color: rgba(255,255,255,0.6); font-variant-numeric: tabular-nums; }
+    .fox-health-chip:hover { border-color: rgba(45,212,191,0.3); box-shadow: 0 0 5px rgba(45,212,191,0.15); }
+    @media (max-width: 768px) { .fox-health-chip { display: none; } }
+    .ember-widget { position: fixed; bottom: 80px; right: 16px; z-index: 50; }
+    .ember-dot { width: 34px; height: 34px; background: rgba(45,212,191,0.08); border: 1.5px solid rgba(45,212,191,0.4); display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: transform 0.15s, box-shadow 0.3s; box-shadow: 0 0 8px rgba(45,212,191,0.3); user-select: none; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+    .ember-dot:hover { transform: scale(1.12); }
+    .ember-dot.hungry { box-shadow: 0 0 10px rgba(249,115,22,0.6); border-color: rgba(249,115,22,0.6); }
+    .ember-dot.lonely { box-shadow: 0 0 10px rgba(232,160,191,0.6); border-color: rgba(232,160,191,0.6); }
+    .ember-dot.bored { box-shadow: 0 0 10px rgba(107,114,128,0.5); border-color: rgba(107,114,128,0.5); }
+    .ember-dot.sleeping { box-shadow: 0 0 10px rgba(99,102,241,0.5); border-color: rgba(99,102,241,0.5); }
+    .ember-tooltip { position: absolute; bottom: 42px; right: 0; width: 230px; background: #0e0e18; border: 1px solid rgba(45,212,191,0.2); padding: 12px 14px; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.65); line-height: 1.6; white-space: pre-wrap; box-shadow: 0 4px 24px rgba(0,0,0,0.6); pointer-events: none; clip-path: var(--chamfer-sm); }
+
+    /* History panel */
+    .history-btn { background: none; border: 1px solid rgba(45,212,191,0.2); color: rgba(255,255,255,0.4); font-family: 'Share Tech Mono', monospace; font-size: 10px; cursor: pointer; padding: 4px 10px; transition: all 0.15s; white-space: nowrap; text-transform: uppercase; letter-spacing: 1px; clip-path: var(--chamfer-sm); }
+    .history-btn:hover { border-color: var(--teal); color: var(--teal-light); box-shadow: 0 0 5px rgba(45,212,191,0.2); }
+    .history-panel { position: fixed; top: 0; left: 0; bottom: 0; width: 320px; background: #0a0a0f; border-right: 1px solid rgba(45,212,191,0.15); z-index: 200; transform: translateX(-100%); transition: transform 0.2s ease; overflow-y: auto; display: flex; flex-direction: column; }
+    .history-panel.open { transform: translateX(0); }
+    .history-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 199; display: none; }
+    .history-overlay.open { display: block; }
+    .history-header { padding: 16px 20px; border-bottom: 1px solid rgba(45,212,191,0.1); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: #0a0a0f; z-index: 1; }
+    .history-header h3 { margin: 0; font-family: 'Orbitron', monospace; font-size: 11px; color: var(--teal-light); letter-spacing: 3px; text-transform: uppercase; text-shadow: 0 0 6px rgba(45,212,191,0.3); }
+    .history-close { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 20px; cursor: pointer; padding: 4px 8px; }
+    .history-close:hover { color: var(--teal-light); }
+    .history-search { margin: 12px 16px; padding: 8px 12px; border: 1px solid rgba(42,42,58,0.8); background: #12121a; color: var(--teal-light); font-family: 'JetBrains Mono', monospace; font-size: 12px; outline: none; width: calc(100% - 32px); clip-path: var(--chamfer-sm); }
+    .history-search:focus { border-color: var(--teal); box-shadow: 0 0 5px rgba(45,212,191,0.2); }
+    .history-search::placeholder { color: rgba(255,255,255,0.2); }
+    .history-list { flex: 1; padding: 8px 0; }
+    .history-item { padding: 12px 20px; cursor: pointer; transition: all 0.15s; border-bottom: 1px solid rgba(45,212,191,0.04); }
+    .history-item:hover { background: rgba(45,212,191,0.06); border-left: 2px solid var(--teal); }
+    .history-item-title { font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 4px; line-height: 1.5; }
+    .history-item-meta { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.3); display: flex; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .history-item-meta .room-tag { background: rgba(45,212,191,0.1); color: var(--teal-light); padding: 1px 6px; font-size: 8px; text-transform: uppercase; letter-spacing: 1px; clip-path: var(--chamfer-sm); }
+    .history-empty { padding: 40px 20px; text-align: center; color: rgba(255,255,255,0.25); font-family: 'Share Tech Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+    @media (max-width: 768px) { .history-panel { width: 100%; } }
+  </style>
+</head>
+<body class="bg-chat">
+
+  <div class="chat-container">
+    <div class="chat-header">
+      <img class="chat-header-avatar" src="assets/images/alex-default.png" alt="Alex" id="companionAvatar">
+      <div>
+        <div class="chat-header-name" id="companionName">Alex</div>
+        <div class="chat-header-status" id="companionStatus">connecting...</div>
+      </div>
+      <div class="chat-header-nav">
+        <button class="history-btn" id="newChatBtn" title="New Chat">+ New</button>
+        <button class="history-btn" id="historyBtn" title="Chat History">History</button>
+        <a href="code.html">Code</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="index.html">Home</a>
+        <a href="alex.html">Alex</a>
+        <a href="fox.html">Fox</a>
+      </div>
+      <button class="chat-menu-btn" id="menuBtn" title="Menu">☰</button>
+    </div>
+
+    <div class="chat-nav-drawer" id="navDrawer">
+      <div class="chat-nav-overlay" id="navOverlay"></div>
+      <div class="chat-nav-panel">
+        <div class="nav-label">The Nest</div>
+        <a href="index.html">🏠 Home</a>
+        <a href="chat.html">💬 Chat</a>
+        <a href="code.html">🔧 Code</a>
+        <a href="gallery.html">🖼 Gallery</a>
+        <a href="us.html">💜 Us</a>
+        <a href="alex.html">🐺 Alex</a>
+        <a href="fox.html">Fox</a>
+        <a href="shadow.html">Shadow</a>
+        <a href="housekeeping.html">HK</a>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages"></div>
+
+    <div class="chat-typing" id="typingIndicator">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="chat-input-row">
+        <button class="chat-upload-btn" id="imageUploadBtn" title="Send image">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </button>
+        <input type="file" id="imageFileInput" accept="image/*" style="display:none;">
+        <button class="chat-upload-btn" id="fileAttachBtn" title="Attach text file (.md, .txt, .py, .js, etc.)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+          </svg>
+        </button>
+        <input type="file" id="textFileInput" accept=".md,.txt,.py,.js,.ts,.jsx,.tsx,.json,.csv,.yaml,.yml,.toml,.sh,.html,.css,.sql,.xml,.env" style="display:none;">
+        <textarea class="chat-input" id="chatInput" placeholder="Talk to me..." rows="1"></textarea>
+        <button class="chat-send-btn" id="sendBtn" title="Send">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Panel -->
+  <div class="history-overlay" id="historyOverlay"></div>
+  <div class="history-panel" id="historyPanel">
+    <div class="history-header">
+      <h3>Chat History</h3>
+      <button class="history-close" id="historyClose">&times;</button>
+    </div>
+    <input class="history-search" id="historySearch" type="text" placeholder="Search conversations...">
+    <div class="history-list" id="historyList">
+      <div class="history-empty">Loading sessions...</div>
+    </div>
+  </div>
+
+  <script src="js/chat.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+    document.getElementById('menuBtn').addEventListener('click', () => {
+      document.getElementById('navDrawer').classList.add('open');
+    });
+    document.getElementById('navOverlay').addEventListener('click', () => {
+      document.getElementById('navDrawer').classList.remove('open');
+    });
+
+    // ── History Panel ──
+    const GATEWAY = 'https://your-gateway.workers.dev';
+    let allSessions = [];
+
+    function openHistory() {
+      document.getElementById('historyPanel').classList.add('open');
+      document.getElementById('historyOverlay').classList.add('open');
+      loadSessions();
+    }
+    function closeHistory() {
+      document.getElementById('historyPanel').classList.remove('open');
+      document.getElementById('historyOverlay').classList.remove('open');
+    }
+
+    document.getElementById('historyBtn').addEventListener('click', openHistory);
+
+    // New Chat button in header — saves current to cloud then clears
+    document.getElementById('newChatBtn').addEventListener('click', async () => {
+      if (ChatApp.messages.length === 0) return;
+      const btn = document.getElementById('newChatBtn');
+      btn.textContent = 'Saving...';
+      btn.disabled = true;
+      try {
+        const firstMsg = ChatApp.messages.find(m => m.role === 'user');
+        const sessionKey = `chat-${new Date().toISOString().split('T')[0]}-${(firstMsg?.content || '').slice(0, 20).replace(/[^a-zA-Z0-9]/g, '')}`;
+        await fetch(`${GATEWAY}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: `Call nestchat_persist with session_id: "${sessionKey}-saved" and room: "chat" and messages: ${JSON.stringify(ChatApp.messages.map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) })))}. Just confirm.` }],
+            stream: false, max_tokens: 100
+          })
+        });
+      } catch (e) { console.warn('Save failed:', e); }
+      ChatApp.messages = [];
+      document.getElementById('chatMessages').innerHTML = '';
+      localStorage.removeItem('nesteq_chat');
+      ChatApp.addSystemNote('New chat. Previous session saved to History.');
+      btn.textContent = '+ New';
+      btn.disabled = false;
+    });
+    document.getElementById('historyClose').addEventListener('click', closeHistory);
+    document.getElementById('historyOverlay').addEventListener('click', closeHistory);
+
+    async function loadSessions() {
+      const list = document.getElementById('historyList');
+      list.innerHTML = '<div class="history-empty">Loading...</div>';
+      try {
+        const res = await fetch(`${GATEWAY}/chat/sessions?limit=50`);
+        const text = await res.text();
+        allSessions = JSON.parse(text);
+        renderSessions(allSessions);
+      } catch (e) {
+        list.innerHTML = `<div class="history-empty">Failed to load: ${e.message}</div>`;
+      }
+    }
+
+    function renderSessions(sessions) {
+      const list = document.getElementById('historyList');
+      if (!sessions.length) {
+        list.innerHTML = '<div class="history-empty">No sessions yet. Start chatting!</div>';
+        return;
+      }
+      list.innerHTML = sessions.map(s => {
+        const date = s.last_message_at ? new Date(s.last_message_at + 'Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Unknown';
+        const time = s.last_message_at ? new Date(s.last_message_at + 'Z').toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+        const title = s.summary || s.metadata || `Session #${s.id}`;
+        const room = s.room || 'chat';
+        return `<div class="history-item" data-id="${s.id}">
+          <div class="history-item-title">${escHtml(title.slice(0, 150))}</div>
+          <div class="history-item-meta">
+            <span class="room-tag">${room}</span>
+            <span>${date} ${time}</span>
+            <span>${s.message_count || 0} msgs</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      list.querySelectorAll('.history-item').forEach(el => {
+        el.addEventListener('click', () => loadSessionMessages(Number(el.dataset.id)));
+      });
+    }
+
+    function escHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // Search filter
+    document.getElementById('historySearch').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      if (!q) { renderSessions(allSessions); return; }
+      const filtered = allSessions.filter(s =>
+        (s.summary || '').toLowerCase().includes(q) ||
+        (s.metadata || '').toLowerCase().includes(q)
+      );
+      renderSessions(filtered);
+    });
+
+    async function loadSessionMessages(sessionId) {
+      const list = document.getElementById('historyList');
+      list.innerHTML = '<div class="history-empty">Loading messages...</div>';
+      try {
+        const res = await fetch(`${GATEWAY}/chat/session/${sessionId}`);
+        const data = await res.json();
+        // Parse the content string — it's the formatted output from nestchat_history
+        const content = data.content || 'No messages found.';
+        list.innerHTML = `
+          <div style="padding:12px 20px;">
+            <button onclick="loadSessions()" style="background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.6);padding:6px 12px;cursor:pointer;font-size:12px;margin-bottom:12px;">Back to sessions</button>
+            <div style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.7;white-space:pre-wrap;">${escHtml(content)}</div>
+          </div>`;
+      } catch (e) {
+        list.innerHTML = `<div class="history-empty">Failed: ${e.message}</div>`;
+      }
+    }
+  </script>
+
+</body>
+</html>

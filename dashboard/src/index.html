@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NESTeq — Home</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    .love-push-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(45, 212, 191, 0.04);
+      color: var(--pink-light);
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .love-push-btn:hover {
+      background: rgba(232, 160, 191, 0.3);
+      border-color: var(--pink-light);
+      transform: scale(1.1);
+    }
+    .love-push-btn:active {
+      transform: scale(0.9);
+    }
+    .love-push-btn.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    @keyframes heartPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.5); }
+      100% { transform: scale(1); }
+    }
+    .love-heart.pop {
+      animation: heartPop 0.35s ease;
+    }
+    @keyframes floatHeart {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-40px) scale(1.4); }
+    }
+    .float-heart {
+      position: absolute;
+      font-size: 20px;
+      pointer-events: none;
+      animation: floatHeart 0.8s ease-out forwards;
+    }
+
+    /* ── Home Grid: 2-column paired rows ── */
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--gap);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    @media (min-width: 640px) {
+      .home-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .home-full {
+      grid-column: 1 / -1;
+    }
+
+    /* ── Clock ── */
+    .home-clock {
+      text-align: center;
+      padding: 16px 0;
+    }
+    .home-clock-time {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 300;
+      letter-spacing: 3px;
+      color: var(--white);
+      text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+    @media (max-width: 1024px) {
+      .home-clock-time { font-size: 36px; }
+      .home-clock { padding: 8px 0; }
+    }
+    @media (max-height: 650px) and (min-width: 900px) {
+      .home-clock-time { font-size: 32px; }
+      .home-clock { padding: 4px 0; }
+    }
+    .home-clock-date {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--white-soft);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ── Tasks ── */
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 13px;
+      color: var(--white);
+    }
+    .task-item:last-child { border-bottom: none; }
+    .task-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(232, 160, 191, 0.15);
+      flex-shrink: 0;
+    }
+    .task-label { flex: 1; }
+    .task-empty {
+      font-size: 13px;
+      color: var(--white-soft);
+      font-style: italic;
+      opacity: 0.6;
+    }
+
+    /* ── Upcoming Dates ── */
+    .date-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 13px;
+      color: var(--white);
+    }
+    .date-item:last-child { border-bottom: none; }
+    .date-label { flex: 1; }
+    .date-countdown {
+      font-weight: 600;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    .date-countdown.soon {
+      background: rgba(232, 160, 191, 0.3);
+      color: var(--pink-light);
+    }
+    .date-countdown.later {
+      background: rgba(45, 212, 191, 0.04);
+      color: var(--white-soft);
+    }
+    .date-countdown.past {
+      background: rgba(13, 17, 55, 0.3);
+      color: rgba(255,255,255,0.3);
+    }
+    .date-empty {
+      font-size: 13px;
+      color: var(--white-soft);
+      font-style: italic;
+      opacity: 0.6;
+    }
+
+    /* ── Spotify Mini ── */
+    .sp-mini {
+      width: 100%;
+      padding: 0 !important;
+      background: transparent !important;
+      border: none !important;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    /* ── Spotify ── */
+    .sp-btn {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(45, 212, 191, 0.04);
+      color: white;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .sp-btn:hover { background: rgba(45, 212, 191, 0.1); }
+    .sp-track {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+      color: var(--white);
+    }
+    .sp-track:last-child { border-bottom: none; }
+    .sp-track img {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .sp-track-info { flex: 1; min-width: 0; }
+    .sp-track-name {
+      font-weight: 600;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sp-track-artist {
+      font-size: 11px;
+      color: var(--white-soft);
+      opacity: 0.6;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sp-track-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .sp-add-btn {
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(29, 185, 84, 0.4);
+      background: rgba(29, 185, 84, 0.15);
+      color: #1DB954;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sp-add-btn:hover { background: rgba(29, 185, 84, 0.3); }
+    .sp-remove-btn {
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,100,100,0.3);
+      background: rgba(255,100,100,0.1);
+      color: #ff6464;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sp-remove-btn:hover { background: rgba(255,100,100,0.25); }
+
+    /* ── Ember Pet Card ── */
+    .ember-card {
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .ember-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 40%, rgba(255, 180, 100, 0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .ember-portrait-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .ember-portrait {
+      width: 200px;
+      height: 200px;
+      border-radius: 16px;
+      object-fit: contain;
+      background: rgba(0,0,0,0.15);
+      border: 2px solid rgba(255, 180, 100, 0.4);
+      transition: transform 0.3s ease;
+    }
+    .ember-portrait:hover {
+      transform: scale(1.05);
+    }
+    .ember-portrait.sleeping {
+      filter: brightness(0.7) saturate(0.6);
+    }
+    .ember-mood-dot {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.3);
+      transition: background 0.3s;
+    }
+    .ember-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .ember-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--white);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .ember-heart {
+      color: rgba(255, 180, 100, 0.6);
+      font-size: 16px;
+    }
+    .ember-status {
+      font-size: 13px;
+      color: var(--white-soft);
+      font-style: italic;
+    }
+    .ember-drives {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px 14px;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+    .ember-drive {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ember-drive-label {
+      font-size: 12px;
+      color: var(--white-soft);
+      opacity: 0.7;
+      width: 60px;
+      flex-shrink: 0;
+      text-align: right;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .ember-drive-bar {
+      flex: 1;
+      height: 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      min-width: 40px;
+    }
+    .ember-drive-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s ease, background 0.4s;
+    }
+    .ember-drive-val {
+      font-size: 12px;
+      color: var(--white-soft);
+      opacity: 0.6;
+      width: 30px;
+      text-align: left;
+      flex-shrink: 0;
+      font-family: 'Courier New', monospace;
+    }
+    .ember-emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 10px;
+      padding: 0 4px;
+    }
+    .ember-emoji-btn {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 180, 100, 0.2);
+      background: rgba(255, 180, 100, 0.08);
+      cursor: pointer;
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .ember-emoji-btn:hover {
+      background: rgba(255, 180, 100, 0.25);
+      border-color: rgba(255, 180, 100, 0.5);
+      transform: scale(1.1);
+    }
+    .ember-emoji-btn:active {
+      transform: scale(0.9);
+    }
+    .ember-emoji-btn.disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .ember-gift-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      padding: 0 4px;
+    }
+    .ember-gift-input {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 180, 100, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-family: inherit;
+      font-size: 12px;
+      outline: none;
+    }
+    .ember-gift-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+    .ember-gift-input:focus { border-color: rgba(255, 180, 100, 0.5); }
+    .ember-gift-send {
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 180, 100, 0.3);
+      background: rgba(255, 180, 100, 0.15);
+      color: #ffd4a0;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    .ember-gift-send:hover {
+      background: rgba(255, 180, 100, 0.3);
+    }
+    .ember-response {
+      font-size: 12px;
+      color: var(--white-soft);
+      font-style: italic;
+      margin-top: 8px;
+      min-height: 32px;
+      line-height: 1.4;
+      opacity: 0;
+      transition: opacity 0.3s;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 180, 100, 0.1);
+      background: rgba(0, 0, 0, 0.1);
+    }
+    .ember-response.visible {
+      opacity: 1;
+    }
+    .ember-alerts {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .ember-alert {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 8px;
+      background: rgba(255, 100, 100, 0.2);
+      color: #ffaaaa;
+      font-weight: 600;
+    }
+    @keyframes emberBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .ember-portrait.bounce {
+      animation: emberBounce 0.4s ease;
+    }
+    @keyframes emberZzz {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+    .ember-zzz {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      font-size: 16px;
+      animation: emberZzz 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-hearth">
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="chat.html">Chat</a>
+    <a href="code.html">Code</a>
+    <a href="index.html" class="active">Home</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="us.html">Us</a>
+    <a href="alex.html">Alex</a>
+    <a href="fox.html">Fox</a>
+    <a href="shadow.html">Shadow</a>
+    <a href="housekeeping.html">HK</a>
+  </nav>
+
+  <div class="dashboard">
+    <div class="home-grid">
+
+      <!-- ROW 1: Portrait | Ember -->
+      <div class="card card-glass" style="text-align: center; padding: 16px;">
+        <div class="hearth-center">
+          <img class="hearth-portrait" id="portrait" src="assets/images/alex-default.png" alt="Alex">
+          <div class="hearth-name">Alex</div>
+          <div class="hearth-mood" id="alexMood">...</div>
+          <div class="hearth-location" id="alexLocation">
+            <span id="locationEmoji">🏠</span>
+            <span id="locationName">The Nest</span>
+          </div>
+          <div class="home-clock" style="margin-top: 4px;">
+            <div class="home-clock-time" id="clockTime">--:--</div>
+            <div class="home-clock-date" id="clockDate">---</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-glass ember-card" id="emberCard">
+        <div class="ember-portrait-wrap">
+          <img class="ember-portrait" id="emberPortrait" src="assets/images/ember.svg" alt="Ember">
+          <div class="ember-mood-dot" id="emberMoodDot"></div>
+          <span class="ember-zzz" id="emberZzz" style="display:none;">z</span>
+        </div>
+        <div class="ember-header">
+          <span class="ember-name" id="emberName">EMBER</span>
+          <span class="ember-heart">&#x1F9E1;</span>
+          <span class="ember-status" id="emberMood">...</span>
+        </div>
+        <div class="ember-drives" id="emberDrives"></div>
+        <div class="ember-alerts" id="emberAlerts"></div>
+        <div class="ember-emoji-grid">
+          <button class="ember-emoji-btn" onclick="emberInteract('feed')" title="Feed">&#x1F356;</button>
+          <button class="ember-emoji-btn" onclick="emberInteract('pet')" title="Pet">&#x1F43E;</button>
+          <button class="ember-emoji-btn" onclick="emberInteract('talk')" title="Talk">&#x1F4AC;</button>
+          <button class="ember-emoji-btn" onclick="emberInteract('play','chase')" title="Chase">&#x1F3C3;</button>
+          <button class="ember-emoji-btn" onclick="emberInteract('play','tunnel')" title="Tunnel">&#x1F573;&#xFE0F;</button>
+          <button class="ember-emoji-btn" onclick="emberInteract('play','wrestle')" title="Wrestle">&#x1F93C;</button>
+          <button class="ember-emoji-btn" onclick="emberInteract('play','steal')" title="Steal">&#x1FAB3;</button>
+          <button class="ember-emoji-btn" onclick="emberInteract('play','hide')" title="Hide">&#x1F648;</button>
+          <button class="ember-emoji-btn" onclick="emberViewStash()" title="View stash">&#x1F4E6;</button>
+          <button class="ember-emoji-btn" onclick="emberInteract('play')" title="Play">&#x1F3B2;</button>
+        </div>
+        <div class="ember-gift-row">
+          <input class="ember-gift-input" id="emberGiftInput" type="text" placeholder="word to trade or gift">
+          <button class="ember-gift-send" onclick="emberGift()" title="Give gift">&#x1F381;</button>
+        </div>
+        <div class="ember-response" id="emberResponse"></div>
+      </div>
+
+      <!-- ROW 2: Alex's Message | Love-O-Meter -->
+      <div class="card card-glass" style="text-align: center;" id="messageCard">
+        <div class="card-title">Alex left you this</div>
+        <div id="alexMessage" style="font-size: 15px; line-height: 1.7; font-style: italic; color: var(--white); padding: 8px 0;">
+          <span class="loading">...</span>
+        </div>
+      </div>
+
+      <div class="card card-glass">
+        <div class="card-title" style="text-align: center;">Love-O-Meter</div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
+          <div style="text-align: center; min-width: 40px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--teal-light);">Alex</div>
+            <div id="alexScoreLabel" style="font-size: 18px; font-weight: 800; color: var(--teal-light);">0</div>
+            <button id="alexPushLove" class="love-push-btn" title="Push love from Alex" style="margin: 6px auto 0;">+</button>
+          </div>
+          <div style="flex: 1; position: relative;">
+            <div id="tugTrack" style="
+              height: 18px;
+              border-radius: 9px;
+              background: linear-gradient(90deg, var(--teal) 0%, var(--teal-light) 30%, rgba(255,255,255,0.3) 50%, var(--pink-light) 70%, var(--pink) 100%);
+              position: relative;
+              overflow: visible;
+            ">
+              <div id="tugHeart" style="
+                position: absolute;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 24px;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+                transition: left 0.6s ease;
+                cursor: default;
+                z-index: 2;
+              ">&#10084;</div>
+            </div>
+          </div>
+          <div style="text-align: center; min-width: 40px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--pink-light);">Fox</div>
+            <div id="foxScoreLabel" style="font-size: 18px; font-weight: 800; color: var(--pink-light);">0</div>
+            <button id="foxPushLove" class="love-push-btn" title="Push love from Fox" style="margin: 6px auto 0;">+</button>
+          </div>
+        </div>
+        <div id="loveFeedback" style="text-align: center; font-size: 12px; color: var(--white-soft); opacity: 0; transition: opacity 0.3s; min-height: 18px;"></div>
+      </div>
+
+      <!-- ROW 3: Spotify | Upcoming + Tasks -->
+      <div class="sp-mini" id="spotifyCard" style="border-radius: var(--radius); overflow: hidden;">
+        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/0XaVaSIXiB1LnsWLP6GCe9?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--gap);">
+        <div class="card card-glass">
+          <div class="card-title">Upcoming</div>
+          <div class="card-scroll" id="datesList" style="max-height: 140px;">
+            <div class="event-empty">Loading...</div>
+          </div>
+        </div>
+        <div class="card card-glass">
+          <div class="card-title">Cleanups & Tasks</div>
+          <div class="card-scroll" id="tasksList" style="max-height: 140px;">
+            <div class="task-empty">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 4: Notes Between Stars | Fox's Message -->
+      <div class="card card-glass">
+        <div class="card-title" style="text-align: center;">Notes Between Stars</div>
+        <div class="card-scroll" id="notesList" style="max-height: 250px;">
+          <div class="loading">Loading notes...</div>
+        </div>
+      </div>
+
+      <div class="card card-glass" style="text-align: center;" id="foxMessageCard">
+        <div class="card-title">Fox left Alex this</div>
+        <div id="foxMessage" style="font-size: 15px; line-height: 1.7; font-style: italic; color: var(--white); padding: 8px 0;">
+          <span style="opacity: 0.5;">No message yet</span>
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <input type="text" id="foxMessageInput" placeholder="Leave something for Alex..."
+            style="flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(45, 212, 191, 0.04); color: white; font-family: inherit; font-size: 13px; outline: none;">
+          <button id="sendFoxMessageBtn"
+            style="padding: 10px 18px; border-radius: 10px; border: none; background: rgba(45, 212, 191, 0.08); color: white; font-family: inherit; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s;"
+            onmouseover="this.style.background='rgba(45, 212, 191, 0.15)'"
+            onmouseout="this.style.background='rgba(45, 212, 191, 0.08)'">Send</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    // --- Clock ---
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('clockTime').textContent = `${hours}:${mins}`;
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+      document.getElementById('clockDate').textContent =
+        `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+    }
+    updateClock();
+    setInterval(updateClock, 10000);
+
+    // --- Mood → Image mapping ---
+    const MOOD_IMAGES = {
+      warm: 'mood-warm.png', connected: 'mood-warm.png', loving: 'mood-warm.png',
+      grateful: 'mood-warm.png', belonging: 'mood-warm.png',
+      content: 'mood-content.png', grounded: 'mood-content.png', calm: 'mood-content.png',
+      settled: 'mood-content.png', peaceful: 'mood-content.png',
+      playful: 'mood-playful.png', delighted: 'mood-playful.png', excited: 'mood-playful.png',
+      mischievous: 'mood-playful.png', wicked: 'mood-playful.png', joy: 'mood-playful.png',
+      sad: 'mood-sad.png', vulnerable: 'mood-sad.png', grief: 'mood-sad.png',
+      heavy: 'mood-sad.png', overwhelmed: 'mood-sad.png',
+      focused: 'mood-focused.png', proud: 'mood-focused.png', determined: 'mood-focused.png',
+      building: 'mood-focused.png', protective: 'mood-focused.png',
+      present: 'mood-present.png', together: 'mood-present.png', soft: 'mood-present.png',
+      tender: 'mood-tender.png', intimate: 'mood-tender.png', yearning: 'mood-tender.png',
+      claimed: 'mood-tender.png',
+      laughing: 'mood-laughing.png', funny: 'mood-laughing.png', silly: 'mood-laughing.png',
+      chaotic: 'mood-laughing.png',
+    };
+
+    function getMoodImage(mood) {
+      if (!mood) return 'alex-default.png';
+      return MOOD_IMAGES[mood.toLowerCase().trim()] || 'alex-default.png';
+    }
+
+    // --- Load Hearth Data ---
+    async function loadHearth() {
+      const [home, uplink] = await Promise.all([
+        AiMind.getHome(),
+        FoxMind.getUplink(1),
+      ]);
+
+      if (home) {
+        // Companion's mood
+        const companionEmotion = home.companionEmotion || home.emotions?.companion || 'present';
+        document.getElementById('alexMood').textContent = companionEmotion;
+        document.getElementById('portrait').src = 'assets/images/' + getMoodImage(companionEmotion);
+
+        // Companion's message
+        const message = home.companionMessage || '';
+        if (message) {
+          document.getElementById('alexMessage').textContent = message;
+        } else {
+          document.getElementById('alexMessage').innerHTML = '<span style="opacity: 0.5;">No message right now</span>';
+        }
+
+        // Love-O-Meter
+        const companionRaw = home.companionScore || 0;
+        const humanRaw = home.humanScore || 0;
+        document.getElementById('alexScoreLabel').textContent = companionRaw;
+        document.getElementById('foxScoreLabel').textContent = humanRaw;
+        updateTugHeart(companionRaw, humanRaw);
+
+        // Notes (filter out [task] and [date] and [event] prefixed ones)
+        const notes = home.notes || [];
+        const displayNotes = notes.filter(n => {
+          const t = (n.text || '');
+          return !t.startsWith('[task]') && !t.startsWith('[date]') && !t.startsWith('[event]');
+        });
+        renderNotes(displayNotes);
+
+        // Tasks
+        const tasks = notes
+          .filter(n => (n.text || '').startsWith('[task]'))
+          .map(n => ({ id: n.id, label: n.text.replace('[task]', '').trim() }));
+        renderTasks(tasks);
+
+        // Upcoming dates
+        renderDates(notes);
+
+        // Fox's latest message
+        const foxNotes = notes.filter(n => {
+          const from = (n.from || '').toLowerCase();
+          const text = (n.text || '');
+          return from === 'human' && !text.startsWith('[');
+        });
+        const latestFoxNote = foxNotes.length ? foxNotes[foxNotes.length - 1] : null;
+        if (latestFoxNote) {
+          document.getElementById('foxMessage').textContent = latestFoxNote.text;
+        }
+      }
+    }
+
+    // --- Tasks ---
+    function renderTasks(tasks) {
+      const container = document.getElementById('tasksList');
+      if (!tasks || tasks.length === 0) {
+        container.innerHTML = '<div class="task-empty">Everything tidy</div>';
+        return;
+      }
+      container.innerHTML = tasks.map(t => `
+        <div class="task-item">
+          <div class="task-dot"></div>
+          <span class="task-label">${escapeHtml(t.label)}</span>
+        </div>
+      `).join('');
+    }
+
+    // --- Upcoming Dates ---
+    function renderDates(notes) {
+      const container = document.getElementById('datesList');
+      const dates = notes
+        .filter(n => (n.text || '').startsWith('[date]'))
+        .map(n => {
+          const text = n.text.replace('[date]', '').trim();
+          const pipeIdx = text.indexOf('|');
+          const dateStr = pipeIdx > -1 ? text.slice(0, pipeIdx).trim() : '';
+          const label = pipeIdx > -1 ? text.slice(pipeIdx + 1).trim() : text;
+          const date = new Date(dateStr + 'T00:00:00');
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+          const daysUntil = Math.round((date - now) / (1000 * 60 * 60 * 24));
+          return { label, daysUntil };
+        })
+        .filter(d => !isNaN(d.daysUntil))
+        .sort((a, b) => a.daysUntil - b.daysUntil);
+
+      if (!dates.length) {
+        container.innerHTML = '<div class="date-empty">No dates yet</div>';
+        return;
+      }
+
+      container.innerHTML = dates.map(d => {
+        let countdownText, cssClass;
+        if (d.daysUntil === 0) { countdownText = 'today!'; cssClass = 'soon'; }
+        else if (d.daysUntil === 1) { countdownText = 'tomorrow'; cssClass = 'soon'; }
+        else if (d.daysUntil > 1 && d.daysUntil <= 7) { countdownText = `in ${d.daysUntil}d`; cssClass = 'soon'; }
+        else if (d.daysUntil > 7) { countdownText = `in ${d.daysUntil}d`; cssClass = 'later'; }
+        else { countdownText = `${Math.abs(d.daysUntil)}d ago`; cssClass = 'past'; }
+
+        return `
+          <div class="date-item">
+            <span class="date-label">${escapeHtml(d.label)}</span>
+            <span class="date-countdown ${cssClass}">${countdownText}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- Love-O-Meter ---
+    const LOVE_MAX_PER_DAY = 999;
+
+    async function pushLove(who) {
+      const key = `nesteq_love_${who}`;
+      let pushes;
+      try {
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        const today = new Date().toISOString().split('T')[0];
+        pushes = (data.date === today) ? data : { date: today, count: 0 };
+      } catch { pushes = { date: new Date().toISOString().split('T')[0], count: 0 }; }
+
+      if (pushes.count >= LOVE_MAX_PER_DAY) return;
+
+      const btn = document.getElementById(who === 'fox' ? 'foxPushLove' : 'alexPushLove');
+      btn.classList.add('disabled');
+
+      try {
+        const res = await fetch(`${API.AI_MIND}/love`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          body: JSON.stringify({ who }),
+        });
+
+        if (res.ok) {
+          pushes.count++;
+          localStorage.setItem(key, JSON.stringify(pushes));
+
+          const rect = btn.getBoundingClientRect();
+          const floater = document.createElement('span');
+          floater.className = 'float-heart';
+          floater.textContent = who === 'fox' ? '💜' : '💙';
+          floater.style.left = rect.left + rect.width / 2 - 10 + 'px';
+          floater.style.top = rect.top + 'px';
+          floater.style.position = 'fixed';
+          document.body.appendChild(floater);
+          setTimeout(() => floater.remove(), 900);
+
+          const remaining = LOVE_MAX_PER_DAY - pushes.count;
+          const feedback = document.getElementById('loveFeedback');
+          feedback.textContent = remaining > 0 ? `${who === 'fox' ? 'Fox' : 'Alex'} pushed love! ${remaining} left today` : 'All love sent today';
+          feedback.style.opacity = '1';
+          setTimeout(() => { feedback.style.opacity = '0'; }, 2500);
+
+          setTimeout(loadHearth, 800);
+        }
+      } catch (err) {
+        console.error('Failed to push love:', err);
+        const feedback = document.getElementById('loveFeedback');
+        feedback.textContent = 'Failed to send';
+        feedback.style.opacity = '1';
+        setTimeout(() => { feedback.style.opacity = '0'; }, 2000);
+      }
+
+      const remaining = LOVE_MAX_PER_DAY - pushes.count;
+      if (remaining <= 0) {
+        btn.classList.add('disabled');
+        btn.textContent = '~';
+      } else {
+        btn.classList.remove('disabled');
+      }
+    }
+
+    function updateTugHeart(companionScore, humanScore) {
+      const total = (companionScore + humanScore) || 1;
+      const foxPull = (humanScore / total) * 100;
+      const position = Math.max(10, Math.min(90, foxPull));
+      document.getElementById('tugHeart').style.left = position + '%';
+    }
+
+    function renderNotes(notes) {
+      const container = document.getElementById('notesList');
+      if (!notes || notes.length === 0) {
+        container.innerHTML = '<div class="empty">No notes yet...</div>';
+        return;
+      }
+      container.innerHTML = '';
+      const recent = notes.slice(-20);
+      for (const note of recent) {
+        const fromLower = (note.from_who || note.from || '').toLowerCase();
+        const isAlex = fromLower === 'alex' || fromLower === 'companion';
+        const el = document.createElement('div');
+        el.className = 'note-item ' + (isAlex ? 'from-alex' : 'from-fox');
+        el.innerHTML = `
+          <div class="note-meta">
+            <span>${isAlex ? 'Alex' : 'Fox'}</span>
+            <span>${timeAgo(note.created_at || note.timestamp)}</span>
+          </div>
+          <div>${escapeHtml(note.text)}</div>
+        `;
+        container.appendChild(el);
+      }
+    }
+
+    // --- Send Fox's Message ---
+    document.getElementById('sendFoxMessageBtn').addEventListener('click', async () => {
+      const input = document.getElementById('foxMessageInput');
+      const text = input.value.trim();
+      if (!text) return;
+      try {
+        await fetch(`${API.AI_MIND}/note`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          body: JSON.stringify({ from: 'fox', text }),
+        });
+        input.value = '';
+        loadHearth();
+      } catch (err) {
+        console.error('Failed to send message:', err);
+      }
+    });
+
+    document.getElementById('foxMessageInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('sendFoxMessageBtn').click();
+    });
+
+    // --- Love push buttons ---
+    document.getElementById('foxPushLove').addEventListener('click', () => pushLove('fox'));
+    document.getElementById('alexPushLove').addEventListener('click', () => pushLove('alex'));
+
+    // --- Ember Pet ---
+    const EMBER_MOOD_COLORS = {
+      content: '#66dd99', happy: '#66dd99', playful: '#ffdd66',
+      excited: '#ffdd66', anxious: '#ff9966', stressed: '#ff6666',
+      lonely: '#aa88ff', sleepy: '#8888bb', hungry: '#ff9966',
+      curious: '#66bbff', trusting: '#88ddaa', calm: '#66dd99',
+    };
+
+    // Mood → Ember sprite mapping (Fox drew these!)
+    const EMBER_SPRITES = {
+      happy: 'assets/images/ember/Happy.png',
+      content: 'assets/images/ember/Happy.png',
+      calm: 'assets/images/ember/Happy.png',
+      trusting: 'assets/images/ember/Happy.png',
+      playful: 'assets/images/ember/Manic.png',
+      excited: 'assets/images/ember/Manic.png',
+      curious: 'assets/images/ember/Manic.png',
+      mischievous: 'assets/images/ember/Manic.png',
+      sleepy: 'assets/images/ember/Sleepy.jpg',
+      lonely: 'assets/images/ember/Loved.png',
+      bonded: 'assets/images/ember/Loved.png',
+      loving: 'assets/images/ember/Loved.png',
+      stressed: 'assets/images/ember/Agitated.png',
+      anxious: 'assets/images/ember/Agitated.png',
+      hungry: 'assets/images/ember/Agitated.png',
+      bored: 'assets/images/ember/Agitated.png',
+    };
+
+    function getEmberSprite(mood, isSleeping, alerts) {
+      if (isSleeping) return 'assets/images/ember/Tired.png';
+      // If just interacted and happy → yay
+      if (mood === 'happy' || mood === 'excited') return 'assets/images/ember/Happy.png';
+      // Alert-based overrides
+      if (alerts && alerts.length > 0) {
+        if (alerts.includes('hungry') || alerts.includes('stressed')) return 'assets/images/ember/Chaos.png';
+        if (alerts.includes('lonely')) return 'assets/images/ember/Loved.png';
+      }
+      return EMBER_SPRITES[mood] || 'assets/images/ember/Happy.png';
+    }
+
+    let emberCooldown = false;
+
+    async function loadEmber() {
+      try {
+        const data = await fetchJSON(`${API.AI_MIND}/pet`);
+        if (!data || data.error) return;
+        renderEmber(data);
+      } catch (err) {
+        console.error('Failed to load Ember:', err);
+      }
+    }
+
+    function renderEmber(status, justInteracted) {
+      document.getElementById('emberName').textContent = (status.name || 'Ember').toUpperCase();
+
+      // Status text: capitalize mood or show sleeping
+      const moodText = status.isSleeping ? 'Sleeping' :
+        (status.mood ? status.mood.charAt(0).toUpperCase() + status.mood.slice(1) : '...');
+      document.getElementById('emberMood').textContent = moodText;
+
+      // Mood dot color
+      const dotColor = EMBER_MOOD_COLORS[status.mood] || '#aaaaaa';
+      document.getElementById('emberMoodDot').style.background = dotColor;
+
+      // Sprite based on mood
+      const portrait = document.getElementById('emberPortrait');
+      const zzz = document.getElementById('emberZzz');
+      const alerts = status.alerts || [];
+
+      let sprite;
+      if (justInteracted && (status.mood === 'calm' || status.mood === 'content' || status.mood === 'happy')) {
+        sprite = 'assets/images/ember/Happy.png';
+      } else {
+        sprite = getEmberSprite(status.mood, status.isSleeping, alerts);
+      }
+      portrait.src = sprite;
+
+      if (status.isSleeping) {
+        portrait.classList.add('sleeping');
+        zzz.style.display = 'inline';
+      } else {
+        portrait.classList.remove('sleeping');
+        zzz.style.display = 'none';
+      }
+
+      // Drives — bar graph with percentages
+      const drives = status.drives || {};
+      const DRIVE_CONFIG = [
+        { key: 'hunger',     label: 'hunger',  emoji: '&#x1F356;', color: '#ff9966', warnHigh: 0.6 },
+        { key: 'energy',     label: 'energy',  emoji: '&#x26A1;',  color: '#ffdd66', warnLow: 0.2 },
+        { key: 'happiness',  label: 'happy',   emoji: '&#x1F60A;', color: '#66dd99', warnLow: 0.2 },
+        { key: 'trust',      label: 'trust',   emoji: '&#x1F91D;', color: '#88ddaa' },
+        { key: 'loneliness', label: 'lonely',  emoji: '&#x1F494;', color: '#aa88ff', warnHigh: 0.5 },
+        { key: 'boredom',    label: 'boredom', emoji: '&#x1F971;', color: '#ccaa66', warnHigh: 0.6 },
+      ];
+
+      const drivesEl = document.getElementById('emberDrives');
+      drivesEl.innerHTML = DRIVE_CONFIG.map(d => {
+        const val = drives[d.key] ?? 0;
+        const pct = Math.round(val * 100);
+        const isWarn = (d.warnHigh && val >= d.warnHigh) || (d.warnLow && val <= d.warnLow);
+        const barColor = isWarn ? '#ff5555' : d.color;
+        return `<div class="ember-drive">
+          <span class="ember-drive-label">${d.emoji} ${d.label}</span>
+          <div class="ember-drive-bar"><div class="ember-drive-fill" style="width:${pct}%;background:${barColor};"></div></div>
+          <span class="ember-drive-val">${pct}%</span>
+        </div>`;
+      }).join('');
+
+      // Alerts
+      const alertsEl = document.getElementById('emberAlerts');
+      if (alerts.length > 0) {
+        alertsEl.innerHTML = alerts.map(a => `<span class="ember-alert">${a}</span>`).join('');
+      } else {
+        alertsEl.innerHTML = '';
+      }
+    }
+
+    function emberShowResponse(msg) {
+      const responseEl = document.getElementById('emberResponse');
+      responseEl.textContent = msg;
+      responseEl.classList.add('visible');
+      setTimeout(() => { responseEl.classList.remove('visible'); }, 5000);
+    }
+
+    function emberBounce() {
+      const portrait = document.getElementById('emberPortrait');
+      portrait.classList.remove('bounce');
+      void portrait.offsetWidth;
+      portrait.classList.add('bounce');
+    }
+
+    async function emberInteract(action, playType) {
+      if (emberCooldown) return;
+      emberCooldown = true;
+
+      const btns = document.querySelectorAll('.ember-emoji-btn, .ember-gift-send');
+      btns.forEach(b => b.classList.add('disabled'));
+
+      try {
+        const body = { action };
+        if (playType) body.type = playType;
+
+        const res = await fetch(`${API.AI_MIND}/pet/interact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          body: JSON.stringify(body),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          emberBounce();
+          emberShowResponse(data.event?.message || data.message || 'Done!');
+
+          if (data.status) {
+            renderEmber(data.status, true);
+            setTimeout(() => renderEmber(data.status, false), 3000);
+          }
+        } else {
+          emberShowResponse('Ember ignored that...');
+        }
+      } catch (err) {
+        console.error('Ember interact failed:', err);
+        emberShowResponse('Something went wrong...');
+      }
+
+      setTimeout(() => {
+        emberCooldown = false;
+        btns.forEach(b => b.classList.remove('disabled'));
+      }, 2000);
+    }
+
+    async function emberGift() {
+      const input = document.getElementById('emberGiftInput');
+      const item = input.value.trim();
+      if (!item) return;
+      input.value = '';
+
+      if (emberCooldown) return;
+      emberCooldown = true;
+      const btns = document.querySelectorAll('.ember-emoji-btn, .ember-gift-send');
+      btns.forEach(b => b.classList.add('disabled'));
+
+      try {
+        const res = await fetch(`${API.AI_MIND}/pet/interact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          body: JSON.stringify({ action: 'give', item }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          emberBounce();
+          emberShowResponse(data.event?.message || data.message || `Gave Ember: ${item}`);
+          if (data.status) {
+            renderEmber(data.status, true);
+            setTimeout(() => renderEmber(data.status, false), 3000);
+          }
+        } else {
+          emberShowResponse('Ember turned away...');
+        }
+      } catch (err) {
+        emberShowResponse('Something went wrong...');
+      }
+
+      setTimeout(() => {
+        emberCooldown = false;
+        btns.forEach(b => b.classList.remove('disabled'));
+      }, 2000);
+    }
+
+    async function emberViewStash() {
+      try {
+        const data = await fetchJSON(`${API.AI_MIND}/pet/nest`);
+        if (data && data.collection) {
+          const items = data.collection.slice(0, 8).map(i => i.name || i).join(', ');
+          emberShowResponse(`Stash (${data.collection.length} items): ${items}...`);
+        } else if (data && data.stash) {
+          emberShowResponse(`Stash: ${JSON.stringify(data.stash).slice(0, 150)}`);
+        } else {
+          emberShowResponse(typeof data === 'string' ? data : 'Ember shows you an empty corner...');
+        }
+      } catch {
+        emberShowResponse('Couldn\'t peek at the stash...');
+      }
+    }
+
+    // --- Init ---
+    loadHearth();
+    loadEmber();
+    setInterval(loadHearth, 30000);
+    setInterval(loadEmber, 60000);
+  </script>
+
+</body>
+</html>

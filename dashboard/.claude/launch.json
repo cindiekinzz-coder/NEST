@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nest-dashboard",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "src", "-p", "3456", "--no-clipboard"],
+      "port": 3456
+    }
+  ]
+}

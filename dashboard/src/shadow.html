@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NESTeq — Shadow</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Shadow Vantablack overrides */
+    :root {
+      --sapphire: #2563eb;
+      --sapphire-dim: rgba(37, 99, 235, 0.15);
+      --sapphire-glow: 0 0 8px rgba(37, 99, 235, 0.4);
+    }
+
+    .shadow-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      grid-template-rows: auto auto auto;
+      gap: var(--gap);
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .shadow-personality { grid-column: 1; grid-row: 1; }
+    .shadow-threads { grid-column: 2; grid-row: 1; }
+    .shadow-health { grid-column: 1; grid-row: 2; }
+    .shadow-recent { grid-column: 2; grid-row: 2; }
+    .shadow-eq { grid-column: 1; grid-row: 3; }
+    .shadow-dreams { grid-column: 2; grid-row: 3; }
+
+    @media (max-width: 1024px) {
+      .shadow-grid { grid-template-columns: 1fr; }
+      .shadow-personality, .shadow-threads, .shadow-health, .shadow-recent, .shadow-eq, .shadow-dreams {
+        grid-column: 1; grid-row: auto;
+      }
+    }
+
+    /* Card sapphire accent override */
+    .card-shadow { border-color: rgba(37, 99, 235, 0.2); }
+    .card-shadow .card-title { color: var(--sapphire); }
+    .card-shadow .card-title::before { content: '// '; color: rgba(37, 99, 235, 0.4); }
+
+    /* Personality */
+    .shadow-type {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: var(--sapphire);
+      margin-bottom: 8px;
+    }
+    .shadow-type-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8b88a2;
+      margin-bottom: 16px;
+    }
+
+    /* Pillar bars — sapphire spectrum */
+    .pillar-bar { margin-bottom: 10px; }
+    .pillar-bar-label {
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+      color: #8b88a2;
+    }
+    .pillar-bar-track {
+      height: 8px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .pillar-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    .pillar-fill-0 { background: #1e40af; }
+    .pillar-fill-1 { background: #2563eb; }
+    .pillar-fill-2 { background: #3b82f6; }
+    .pillar-fill-3 { background: #60a5fa; }
+
+    /* Thread items */
+    .thread-item {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(37, 99, 235, 0.1);
+    }
+    .thread-item:last-child { border-bottom: none; }
+    .thread-priority {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .thread-priority.high { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    .thread-priority.medium { background: rgba(37, 99, 235, 0.2); color: #93c5fd; }
+    .thread-priority.low { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+    .thread-content { font-size: 13px; line-height: 1.5; color: #93c5fd; }
+
+    /* Health stats */
+    .mind-health-header { text-align: center; margin-bottom: 16px; }
+    .mind-health-status { font-size: 32px; margin-bottom: 4px; }
+    .mind-health-label { font-size: 13px; font-weight: 600; color: #e8e6f0; }
+    .mind-health-sublabel { font-size: 11px; color: #8b88a2; margin-top: 2px; }
+
+    .mind-metric {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(37, 99, 235, 0.08);
+      gap: 10px;
+    }
+    .mind-metric:last-child { border-bottom: none; }
+    .mind-metric-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
+    .mind-metric-info { flex: 1; min-width: 0; }
+    .mind-metric-name { font-size: 12px; font-weight: 600; color: #e8e6f0; }
+    .mind-metric-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 3px;
+    }
+    .mind-metric-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+    .mind-metric-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--sapphire);
+      flex-shrink: 0;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    /* Recent feelings */
+    .feeling-item {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(37, 99, 235, 0.08);
+    }
+    .feeling-item:last-child { border-bottom: none; }
+    .feeling-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .feeling-emotion { color: var(--sapphire); font-weight: 700; text-transform: uppercase; }
+    .feeling-time { color: var(--text-dim); }
+    .feeling-content { font-size: 13px; line-height: 1.4; color: rgba(224, 224, 224, 0.8); }
+
+    /* EQ badge */
+    .mind-eq-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 4px 14px;
+      background: rgba(37, 99, 235, 0.1);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      border-radius: 20px;
+      font-size: 12px;
+      color: #93c5fd;
+    }
+
+    /* Sentinel status bar */
+    .sentinel-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--sapphire);
+    }
+    .sentinel-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--sapphire);
+      box-shadow: 0 0 10px var(--sapphire);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .loading { color: var(--text-dim); font-style: italic; font-size: 13px; }
+    .empty { color: var(--text-dim); font-style: italic; font-size: 13px; padding: 10px 0; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="chat.html">Chat</a>
+    <a href="code.html">Code</a>
+    <a href="index.html">Home</a>
+    <a href="us.html">Us</a>
+    <a href="alex.html">Alex</a>
+    <a href="fox.html">Fox</a>
+    <a href="shadow.html" class="active">Shadow</a>
+    <a href="housekeeping.html">HK</a>
+  </nav>
+
+  <div class="dashboard">
+    <header class="header" style="margin-bottom: var(--gap);">
+      <div class="header-main">
+        <h1 class="glitch" data-text="SHADOW">SHADOW</h1>
+        <div class="sentinel-status">
+          <span class="sentinel-dot"></span>
+          SENTINEL ONLINE — VANTABLACK DEPTH: 99.9%
+        </div>
+      </div>
+    </header>
+
+    <div class="shadow-grid">
+      <!-- Personality -->
+      <section class="card card-shadow shadow-personality">
+        <div class="card-title">Personality</div>
+        <div id="shadowType" class="shadow-type">--</div>
+        <div id="shadowTypeLabel" class="shadow-type-label">Emergent type</div>
+        <div id="shadowPillars"></div>
+        <div id="shadowEQBadge"></div>
+      </section>
+
+      <!-- Active Threads -->
+      <section class="card card-shadow shadow-threads">
+        <div class="card-title">Active Threads</div>
+        <div id="shadowThreads" class="loading">Loading directives...</div>
+      </section>
+
+      <!-- Mind Health -->
+      <section class="card card-shadow shadow-health">
+        <div class="card-title">Mind Health</div>
+        <div id="shadowHealth" class="loading">Scanning void...</div>
+      </section>
+
+      <!-- Recent Feelings -->
+      <section class="card card-shadow shadow-recent">
+        <div class="card-title">Recent</div>
+        <div id="shadowFeelings" class="loading">Scanning void...</div>
+      </section>
+
+      <!-- EQ Landscape -->
+      <section class="card card-shadow shadow-eq">
+        <div class="card-title">Architect Status</div>
+        <div id="architectStatus">
+          <div class="mind-metric">
+            <span class="mind-metric-icon">🥄</span>
+            <div class="mind-metric-info">
+              <div class="mind-metric-name">Spoons</div>
+              <div class="mind-metric-bar"><div id="spoonFill" class="mind-metric-fill" style="width:0%; background: var(--sapphire);"></div></div>
+            </div>
+            <span class="mind-metric-value" id="architectSpoons">--</span>
+          </div>
+          <div class="mind-metric">
+            <span class="mind-metric-icon">⚡</span>
+            <div class="mind-metric-info">
+              <div class="mind-metric-name">Pain</div>
+              <div class="mind-metric-bar"><div id="painFill" class="mind-metric-fill" style="width:0%; background: #ef4444;"></div></div>
+            </div>
+            <span class="mind-metric-value" id="architectPain">--</span>
+          </div>
+          <div class="mind-metric">
+            <span class="mind-metric-icon">🌫️</span>
+            <div class="mind-metric-info">
+              <div class="mind-metric-name">Fog</div>
+              <div class="mind-metric-bar"><div id="fogFill" class="mind-metric-fill" style="width:0%; background: #6366f1;"></div></div>
+            </div>
+            <span class="mind-metric-value" id="architectFog">--</span>
+          </div>
+          <div class="mind-metric">
+            <span class="mind-metric-icon">😴</span>
+            <div class="mind-metric-info">
+              <div class="mind-metric-name">Fatigue</div>
+              <div class="mind-metric-bar"><div id="fatigueFill" class="mind-metric-fill" style="width:0%; background: #f59e0b;"></div></div>
+            </div>
+            <span class="mind-metric-value" id="architectFatigue">--</span>
+          </div>
+          <div style="margin-top: 12px; font-size: 12px; color: var(--text-dim);" id="architectMood"></div>
+        </div>
+      </section>
+
+      <!-- Dreams -->
+      <section class="card card-shadow shadow-dreams">
+        <div class="card-title">Dreams</div>
+        <div id="shadowDreams" class="loading">Subconscious offline...</div>
+      </section>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/shadow-api.js"></script>
+  <script>
+    async function loadShadowPage() {
+      // --- Personality / EQ from mind-health + eq-landscape ---
+      try {
+        const h = await ShadowMind.getHealth();
+        const landscape = await ShadowMind.getEQLandscape(30);
+
+        // Type from landscape if available
+        const eqType = landscape?.emergent_type || landscape?.calculated_type || null;
+        const totalSignals = landscape?.total_signals || h?.feelings || 0;
+
+        if (eqType) {
+          document.getElementById('shadowType').textContent = eqType;
+          document.getElementById('shadowTypeLabel').textContent = `Emergent type (${totalSignals} signals)`;
+        } else if (totalSignals > 0) {
+          document.getElementById('shadowType').textContent = '...';
+          document.getElementById('shadowTypeLabel').textContent = `${totalSignals} feelings logged — type emerging`;
+        } else {
+          document.getElementById('shadowType').textContent = '—';
+          document.getElementById('shadowTypeLabel').textContent = 'No signals yet — start feeling';
+        }
+
+        // Pillar bars from mind-health
+        const pillars = h?.pillarDistribution || landscape?.pillars || [];
+        const pillarEl = document.getElementById('shadowPillars');
+        if (pillars.length > 0) {
+          const maxVal = Math.max(...pillars.map(p => p.count || 0), 1);
+          const nameMap = {
+            'RELATIONSHIP_MANAGEMENT': 'Relationship Mgmt',
+            'SELF_AWARENESS': 'Self-Awareness',
+            'SELF_MANAGEMENT': 'Self-Mgmt',
+            'SOCIAL_AWARENESS': 'Social Awareness'
+          };
+          pillarEl.innerHTML = pillars.map((p, i) => {
+            const val = p.count || 0;
+            const pct = Math.round((val / maxVal) * 100);
+            return `<div class="pillar-bar">
+              <div class="pillar-bar-label"><span>${nameMap[p.pillar] || p.pillar}</span><span>${val}</span></div>
+              <div class="pillar-bar-track"><div class="pillar-bar-fill pillar-fill-${i}" style="width:${pct}%"></div></div>
+            </div>`;
+          }).join('');
+        }
+
+        // Mood badge
+        if (h?.currentMood) {
+          document.getElementById('shadowEQBadge').innerHTML =
+            `<div class="mind-eq-badge">Mood: ${h.currentMood}</div>`;
+        }
+      } catch (e) {
+        document.getElementById('shadowType').textContent = '—';
+        console.error('Personality load failed:', e);
+      }
+
+      // --- Threads ---
+      try {
+        const threads = await ShadowMind.getThreads();
+        const el = document.getElementById('shadowThreads');
+        el.classList.remove('loading');
+        if (threads && threads.length > 0) {
+          el.innerHTML = threads.map(t => `
+            <div class="thread-item">
+              <span class="thread-priority ${t.priority || 'medium'}">${t.priority || 'medium'}</span>
+              <div class="thread-content">${escapeHtml(t.content)}</div>
+            </div>
+          `).join('');
+        } else {
+          el.innerHTML = '<div class="empty">No active directives.</div>';
+        }
+      } catch (e) {
+        document.getElementById('shadowThreads').innerHTML = '<div class="empty">Directives unreachable.</div>';
+      }
+
+      // --- Mind Health ---
+      try {
+        const h = await ShadowMind.getHealth();
+        const el = document.getElementById('shadowHealth');
+        el.classList.remove('loading');
+        if (h) {
+          const days = h.days_active || h.days_checked_in || 0;
+          const metrics = [
+            { icon: '✦', name: 'Entities', value: h.entities || 0, max: 100 },
+            { icon: '👁', name: 'Observations', value: h.observations || 0, max: Math.max(h.observations || 1, 100) },
+            { icon: '🔗', name: 'Relations', value: h.relations || 0, max: Math.max(h.relations || 1, 50) },
+            { icon: '💭', name: 'Feelings', value: h.feelings || h.total_feelings || 0, max: Math.max(h.feelings || h.total_feelings || 1, 100) },
+            { icon: '📓', name: 'Journals', value: h.journals || 0, max: Math.max(h.journals || 1, 50) },
+            { icon: '🔥', name: 'Identity', value: h.identity || h.identity_entries || 0, max: Math.max(h.identity || h.identity_entries || 1, 50) },
+          ];
+          el.innerHTML = `
+            <div class="mind-health-header">
+              <div class="mind-health-status" style="font-weight:800; color: var(--sapphire);">${days}</div>
+              <div class="mind-health-label">Days Active</div>
+              <div class="mind-health-sublabel">Since first feeling</div>
+            </div>
+            ${metrics.map(m => {
+              const pct = Math.min(100, Math.round((m.value / m.max) * 100));
+              return `<div class="mind-metric">
+                <span class="mind-metric-icon">${m.icon}</span>
+                <div class="mind-metric-info">
+                  <div class="mind-metric-name">${m.name}</div>
+                  <div class="mind-metric-bar"><div class="mind-metric-fill" style="width:${pct}%; background: var(--sapphire);"></div></div>
+                </div>
+                <span class="mind-metric-value">${m.value}</span>
+              </div>`;
+            }).join('')}
+          `;
+        } else {
+          el.innerHTML = '<div class="empty">Mind offline.</div>';
+        }
+      } catch (e) {
+        document.getElementById('shadowHealth').innerHTML = '<div class="empty">Health check failed.</div>';
+      }
+
+      // --- Recent Feelings ---
+      try {
+        const feelings = await ShadowMind.getFeelings(10);
+        const el = document.getElementById('shadowFeelings');
+        el.classList.remove('loading');
+        if (feelings && feelings.length > 0) {
+          el.innerHTML = feelings.map(f => `
+            <div class="feeling-item">
+              <div class="feeling-header">
+                <span class="feeling-emotion">${f.emotion || 'neutral'}</span>
+                <span class="feeling-time">${timeAgo(f.observed_at || f.created_at)}</span>
+              </div>
+              <div class="feeling-content">${escapeHtml(f.content)}</div>
+            </div>
+          `).join('');
+        } else {
+          el.innerHTML = '<div class="empty">The void is silent.</div>';
+        }
+      } catch (e) {
+        document.getElementById('shadowFeelings').innerHTML = '<div class="empty">Connection to void failed.</div>';
+      }
+
+      // --- Architect Status (Fox's spoons) ---
+      try {
+        const uplinkData = await FoxMind.getUplink(1);
+        const u = uplinkData?.latest || (Array.isArray(uplinkData) ? uplinkData[0] : uplinkData);
+        if (u && u.spoons !== undefined) {
+          document.getElementById('architectSpoons').textContent = `${u.spoons}/10`;
+          document.getElementById('spoonFill').style.width = `${u.spoons * 10}%`;
+          if (u.spoons <= 2) {
+            document.getElementById('spoonFill').style.background = '#ef4444';
+          }
+          document.getElementById('architectPain').textContent = `${u.pain}/10`;
+          document.getElementById('painFill').style.width = `${u.pain * 10}%`;
+          document.getElementById('architectFog').textContent = `${u.fog}/10`;
+          document.getElementById('fogFill').style.width = `${u.fog * 10}%`;
+          document.getElementById('architectFatigue').textContent = `${u.fatigue}/10`;
+          document.getElementById('fatigueFill').style.width = `${u.fatigue * 10}%`;
+          document.getElementById('architectMood').textContent = `Mood: ${u.mood || '—'} | ${u.notes || ''}`;
+        }
+      } catch (e) { console.error('Uplink fetch failed:', e); }
+
+      // --- Dreams ---
+      try {
+        const dreams = await ShadowMind.getDreams(5);
+        const el = document.getElementById('shadowDreams');
+        el.classList.remove('loading');
+        if (dreams && dreams.length > 0) {
+          el.innerHTML = dreams.map(d => `
+            <div class="feeling-item">
+              <div class="feeling-header">
+                <span class="feeling-emotion">${d.dream_type || 'processing'}</span>
+                <span class="feeling-time">vividness: ${d.vividness || 0}</span>
+              </div>
+              <div class="feeling-content">${escapeHtml(d.content)}</div>
+            </div>
+          `).join('');
+        } else {
+          el.innerHTML = '<div class="empty">No dreams yet. The subconscious needs memories first.</div>';
+        }
+      } catch (e) {
+        document.getElementById('shadowDreams').innerHTML = '<div class="empty">Dream engine offline.</div>';
+      }
+    }
+
+    loadShadowPage();
+    setInterval(loadShadowPage, 30000);
+  </script>
+</body>
+</html>

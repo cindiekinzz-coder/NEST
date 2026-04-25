@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NESTeq — Neural Map</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <style>
+    .neural-container {
+      width: 100%;
+      height: calc(100vh - 120px);
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    #neural-graph {
+      width: 100%;
+      height: 100%;
+    }
+    .neural-controls {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 10;
+    }
+    .neural-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: #0a0a0a;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .neural-btn:hover {
+      background: #1a1a1a;
+      border-color: rgba(255,255,255,0.4);
+    }
+    .neural-btn option {
+      background: #0a0a0a;
+      color: #ffffff;
+    }
+    .neural-btn.active {
+      background: var(--teal);
+      border-color: var(--teal-light);
+    }
+    .neural-stats {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #0a0a0a;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #ffffff;
+      z-index: 10;
+    }
+    .neural-stats div {
+      margin-bottom: 4px;
+      color: #ffffff;
+    }
+    .neural-stats .stat-value {
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .neural-legend {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: #0a0a0a;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #ffffff;
+      z-index: 10;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .node-info {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      background: #0a0a0a;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      color: #ffffff;
+      z-index: 10;
+      max-width: 300px;
+      display: none;
+    }
+    .node-info.visible {
+      display: block;
+    }
+    .node-info h3 {
+      margin: 0 0 8px 0;
+      color: #ffffff;
+      font-size: 16px;
+    }
+    .node-info .node-type {
+      color: #ffffff;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+    .node-info .node-relations {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+    .node-info .relation-item {
+      font-size: 11px;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #ffffff;
+      z-index: 100;
+    }
+    .loading-overlay.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-hearth">
+
+  <!-- Navigation -->
+  <nav class="nav" id="mainNav">
+    <a href="chat.html">Chat</a>
+    <a href="code.html">Code</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="index.html">Home</a>
+    <a href="us.html">Us</a>
+    <a href="alex.html">Alex</a>
+    <a href="fox.html">Fox</a>
+    <a href="shadow.html">Shadow</a>
+    <a href="housekeeping.html">HK</a>
+  </nav>
+  <script>if (window.self !== window.top) document.getElementById('mainNav').style.display = 'none';</script>
+
+  <div class="dashboard" style="padding: 16px;">
+    <div class="neural-container">
+      <div class="loading-overlay" id="loading">
+        <span>Mapping neural pathways...</span>
+      </div>
+
+      <div id="neural-graph"></div>
+
+      <div class="neural-controls">
+        <button class="neural-btn" id="btn-fit">Fit View</button>
+        <button class="neural-btn" id="btn-physics" data-active="true">Physics: On</button>
+        <select class="neural-btn" id="filter-type" style="min-width: 120px;">
+          <option value="all">All Types</option>
+          <option value="person">People</option>
+          <option value="AI">AIs</option>
+          <option value="concept">Concepts</option>
+          <option value="project">Projects</option>
+          <option value="place">Places</option>
+          <option value="family">Family</option>
+        </select>
+      </div>
+
+      <div class="neural-stats">
+        <div>Entities: <span class="stat-value" id="stat-entities">0</span></div>
+        <div>Relations: <span class="stat-value" id="stat-relations">0</span></div>
+        <div>Clusters: <span class="stat-value" id="stat-clusters">-</span></div>
+      </div>
+
+      <div class="neural-legend">
+        <div class="legend-item"><div class="legend-dot" style="background: #5eead4;"></div> Person</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #a78bfa;"></div> AI</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #f472b6;"></div> Concept</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #fbbf24;"></div> Project</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #60a5fa;"></div> Place</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #f87171;"></div> Family</div>
+      </div>
+
+      <div class="node-info" id="node-info">
+        <h3 id="info-name">Entity</h3>
+        <div class="node-type" id="info-type">type</div>
+        <div id="info-observations"></div>
+        <div class="node-relations" id="info-relations"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    // --- Color scheme by entity type ---
+    const TYPE_COLORS = {
+      person: '#5eead4',    // teal
+      partner: '#5eead4',   // teal (same as person)
+      AI: '#a78bfa',        // purple
+      companion: '#a78bfa', // purple (same as AI)
+      ai_facet: '#a78bfa',  // purple (same as AI)
+      concept: '#f472b6',   // pink
+      project: '#fbbf24',   // amber
+      place: '#60a5fa',     // blue
+      family: '#f87171',    // red
+      thing: '#94a3b8',     // gray
+      event: '#4ade80',     // green
+      default: '#94a3b8',   // gray
+    };
+
+    // --- Global state ---
+    let network = null;
+    let allNodes = [];
+    let allEdges = [];
+    let entitiesData = [];
+    let relationsData = [];
+
+    // --- Fetch graph data ---
+    async function fetchGraphData() {
+      try {
+        // Fetch entities
+        const entitiesRes = await fetch(`${API.AI_MIND}/entities`, {
+          headers: { 'Authorization': `Bearer ${API.API_KEY}` }
+        });
+        if (!entitiesRes.ok) throw new Error('Failed to fetch entities');
+        const entitiesJson = await entitiesRes.json();
+        entitiesData = entitiesJson.entities || entitiesJson || [];
+
+        // Fetch relations
+        const relationsRes = await fetch(`${API.AI_MIND}/relations`, {
+          headers: { 'Authorization': `Bearer ${API.API_KEY}` }
+        });
+        if (!relationsRes.ok) throw new Error('Failed to fetch relations');
+        const relationsJson = await relationsRes.json();
+        relationsData = relationsJson.relations || relationsJson || [];
+
+        return { entities: entitiesData, relations: relationsData };
+      } catch (err) {
+        console.error('Failed to fetch graph data:', err);
+        return { entities: [], relations: [] };
+      }
+    }
+
+    // --- Build vis.js nodes and edges ---
+    function buildGraph(entities, relations, filterType = 'all') {
+      // Build entity name -> id map for edge creation
+      const entityMap = new Map();
+      entities.forEach(e => {
+        entityMap.set(e.name, e.id);
+        entityMap.set(e.name.toLowerCase(), e.id);
+      });
+
+      // Filter entities by type if needed
+      const filteredEntities = filterType === 'all'
+        ? entities
+        : entities.filter(e => (e.entity_type || '').toLowerCase() === filterType.toLowerCase());
+
+      const filteredEntityNames = new Set(filteredEntities.map(e => e.name.toLowerCase()));
+
+      // Build nodes
+      allNodes = filteredEntities.map(entity => {
+        const type = (entity.entity_type || 'default').toLowerCase();
+        const color = TYPE_COLORS[type] || TYPE_COLORS.default;
+
+        return {
+          id: entity.id,
+          label: entity.name,
+          title: `${entity.name}\n(${entity.entity_type || 'unknown'})`,
+          color: {
+            background: color,
+            border: color,
+            highlight: { background: '#fff', border: color },
+            hover: { background: color, border: '#fff' }
+          },
+          font: { color: '#fff', size: 12 },
+          size: 20,
+          entityData: entity,
+        };
+      });
+
+      // Build edges (only for visible entities)
+      allEdges = relations
+        .filter(r => {
+          if (filterType === 'all') return true;
+          const fromName = (r.from_entity || '').toLowerCase();
+          const toName = (r.to_entity || '').toLowerCase();
+          return filteredEntityNames.has(fromName) || filteredEntityNames.has(toName);
+        })
+        .map((rel, idx) => {
+          const fromId = entityMap.get(rel.from_entity) || entityMap.get((rel.from_entity || '').toLowerCase());
+          const toId = entityMap.get(rel.to_entity) || entityMap.get((rel.to_entity || '').toLowerCase());
+
+          if (!fromId || !toId) return null;
+
+          return {
+            id: `edge-${idx}`,
+            from: fromId,
+            to: toId,
+            label: rel.relation_type || '',
+            arrows: 'to',
+            color: { color: 'rgba(255,255,255,0.3)', highlight: '#fff', hover: 'rgba(255,255,255,0.6)' },
+            font: { color: 'rgba(255,255,255,0.5)', size: 9, strokeWidth: 0 },
+            smooth: { type: 'continuous' },
+            relationData: rel,
+          };
+        })
+        .filter(Boolean);
+
+      return { nodes: allNodes, edges: allEdges };
+    }
+
+    // --- Create the network visualization ---
+    function createNetwork(nodes, edges) {
+      const container = document.getElementById('neural-graph');
+
+      const data = {
+        nodes: new vis.DataSet(nodes),
+        edges: new vis.DataSet(edges),
+      };
+
+      const options = {
+        physics: {
+          enabled: true,
+          solver: 'forceAtlas2Based',
+          forceAtlas2Based: {
+            gravitationalConstant: -50,
+            centralGravity: 0.01,
+            springLength: 150,
+            springConstant: 0.08,
+            damping: 0.4,
+          },
+          stabilization: {
+            enabled: true,
+            iterations: 200,
+            updateInterval: 25,
+          },
+        },
+        interaction: {
+          hover: true,
+          tooltipDelay: 200,
+          hideEdgesOnDrag: true,
+          hideEdgesOnZoom: true,
+        },
+        nodes: {
+          shape: 'dot',
+          borderWidth: 2,
+          shadow: true,
+        },
+        edges: {
+          width: 1,
+          shadow: false,
+        },
+      };
+
+      network = new vis.Network(container, data, options);
+
+      // Event: node click
+      network.on('click', function(params) {
+        if (params.nodes.length > 0) {
+          const nodeId = params.nodes[0];
+          const node = nodes.find(n => n.id === nodeId);
+          if (node) showNodeInfo(node, edges);
+        } else {
+          hideNodeInfo();
+        }
+      });
+
+      // Event: stabilization done
+      network.on('stabilizationIterationsDone', function() {
+        document.getElementById('loading').classList.add('hidden');
+      });
+
+      // Update stats
+      document.getElementById('stat-entities').textContent = nodes.length;
+      document.getElementById('stat-relations').textContent = edges.length;
+
+      return network;
+    }
+
+    // --- Show node info panel ---
+    function showNodeInfo(node, edges) {
+      const panel = document.getElementById('node-info');
+      document.getElementById('info-name').textContent = node.label;
+      document.getElementById('info-type').textContent = node.entityData?.entity_type || 'unknown';
+
+      // Find relations for this node
+      const nodeEdges = edges.filter(e => e.from === node.id || e.to === node.id);
+      const relationsHtml = nodeEdges.slice(0, 10).map(e => {
+        const isFrom = e.from === node.id;
+        const otherNode = allNodes.find(n => n.id === (isFrom ? e.to : e.from));
+        const direction = isFrom ? '→' : '←';
+        return `<div class="relation-item">${direction} ${e.label || 'relates to'} ${otherNode?.label || '?'}</div>`;
+      }).join('');
+
+      document.getElementById('info-relations').innerHTML = relationsHtml || '<div class="relation-item">No relations</div>';
+
+      panel.classList.add('visible');
+    }
+
+    function hideNodeInfo() {
+      document.getElementById('node-info').classList.remove('visible');
+    }
+
+    // --- Controls ---
+    document.getElementById('btn-fit').addEventListener('click', () => {
+      if (network) network.fit({ animation: true });
+    });
+
+    document.getElementById('btn-physics').addEventListener('click', function() {
+      const active = this.dataset.active === 'true';
+      this.dataset.active = !active;
+      this.textContent = `Physics: ${!active ? 'On' : 'Off'}`;
+      this.classList.toggle('active', !active);
+      if (network) {
+        network.setOptions({ physics: { enabled: !active } });
+      }
+    });
+
+    document.getElementById('filter-type').addEventListener('change', async function() {
+      const filterType = this.value;
+      document.getElementById('loading').classList.remove('hidden');
+
+      const { nodes, edges } = buildGraph(entitiesData, relationsData, filterType);
+
+      if (network) {
+        network.destroy();
+      }
+      createNetwork(nodes, edges);
+    });
+
+    // --- Init ---
+    async function init() {
+      const { entities, relations } = await fetchGraphData();
+
+      if (entities.length === 0) {
+        document.getElementById('loading').innerHTML = '<span>No entities found. Build some memories first!</span>';
+        return;
+      }
+
+      const { nodes, edges } = buildGraph(entities, relations);
+      createNetwork(nodes, edges);
+    }
+
+    init();
+  </script>
+
+</body>
+</html>

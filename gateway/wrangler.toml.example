@@ -1,0 +1,38 @@
+name = "nest-gateway"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# ─── Service URLs ────────────────────────────────────────────────────────────
+# Where your backend workers are deployed.
+# Set these as vars (non-secret) in wrangler or the Cloudflare dashboard.
+
+[vars]
+AI_MIND_URL = "https://your-nesteq-worker.workers.dev"
+FOX_HEALTH_URL = "https://your-fox-health-worker.workers.dev"
+DISCORD_MCP_URL = "https://your-discord-mcp-worker.workers.dev"
+CHAT_MODEL = "qwen/qwen3.6-plus"
+ELEVENLABS_VOICE_ID = "your-voice-id-here"
+CLOUDFLARE_ACCOUNT_ID = "your-cloudflare-account-id"
+
+# ─── Secrets ─────────────────────────────────────────────────────────────────
+# Set via: wrangler secret put SECRET_NAME
+# Never put real keys in wrangler.toml.
+#
+# MCP_API_KEY          — Bearer token for /mcp and /sse endpoints
+# OPENROUTER_API_KEY   — Model calls (heartbeat, chat, agentic cron tasks)
+# ELEVENLABS_API_KEY   — TTS (optional — only needed if using voice)
+# CLOUDFLARE_API_TOKEN — For Cloudflare API tool calls (R2, Workers, etc.)
+# DISCORD_MCP_SECRET   — Auth for Discord MCP webhook requests
+
+# ─── Durable Objects ─────────────────────────────────────────────────────────
+[[durable_objects.bindings]]
+name = "DAEMON_OBJECT"
+class_name = "NESTcodeDaemon"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["NESTcodeDaemon"]
+
+# ─── Workers AI ──────────────────────────────────────────────────────────────
+[ai]
+binding = "AI"

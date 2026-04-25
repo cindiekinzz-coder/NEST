@@ -1,0 +1,24 @@
+{
+  "name": "nesteq-gateway",
+  "version": "1.0.0",
+  "description": "NESTeq Gateway — One endpoint, all companion tools",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "author": "Fox & Alex (adapted from Nexus Gateway by the Triad Dev Team)",
+  "license": "Apache-2.0",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "agents": "^0.2.35",
+    "ai": "^6.0.140",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251221.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.56.0"
+  }
+}

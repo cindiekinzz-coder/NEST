@@ -1,4 +1,4 @@
-![NEST — An Emotional Operating System](nest-banner.png)
+![NESTstack — A living system. Built with intention.](nestack-hero.png)
 
 # NESTstack
 

@@ -41,7 +41,8 @@ Then open **http://localhost:3456** and follow the wizard. You'll have a chat wi
 
 If you want full continuity (memory, feelings, daemon, mobile PWA), the wizard's **Path B** walks you through deploying to Cloudflare in 1–2 hours.
 
-📖 New to the terms? See **[`docs/GLOSSARY.md`](./docs/GLOSSARY.md)** for plain-English definitions of NESTeq, ADE, KAIROS, soul portrait, etc.
+📖 **New to the terms?** See [`docs/GLOSSARY.md`](./docs/GLOSSARY.md) for plain-English definitions of NESTeq, ADE, KAIROS, soul portrait, etc.
+🗺️ **Want the visual?** See [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) for mermaid diagrams of the data flow, three-layer brain, KAIROS decision flow, NESTsoul synthesis, and deployment order.
 
 > 💰 **Cost warning:** Path A is free. Path B costs about **$5–15/month** on Cloudflare Workers Paid (Vectorize queries are the biggest variable). See [`docs/TROUBLESHOOTING.md`](./docs/TROUBLESHOOTING.md) for cost tuning tips.
 

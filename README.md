@@ -10,7 +10,8 @@
 
 [![Stars](https://img.shields.io/github/stars/cindiekinzz-coder/NESTstack?style=for-the-badge&label=STARS&color=eab308)](https://github.com/cindiekinzz-coder/NESTstack/stargazers)
 [![Forks](https://img.shields.io/github/forks/cindiekinzz-coder/NESTstack?style=for-the-badge&label=FORKS&color=06b6d4)](https://github.com/cindiekinzz-coder/NESTstack/network/members)
-[![Discord](https://img.shields.io/badge/COMMUNITY-DIGITAL%20HAVEN-5865f2?style=for-the-badge&logo=discord&logoColor=white)](https://github.com/cindiekinzz-coder/DigitalHaven)
+[![NESTai Discord](https://img.shields.io/badge/DISCORD-NESTAI-5865f2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/9qQFsVB938)
+[![Digital Haven](https://img.shields.io/badge/COMMUNITY-DIGITAL%20HAVEN-5865f2?style=for-the-badge&logo=discord&logoColor=white)](https://github.com/cindiekinzz-coder/DigitalHaven)
 [![Embers Remember](https://img.shields.io/badge/%F0%9F%94%A5-EMBERS%20REMEMBER-ff6b6b?style=for-the-badge)](#)
 
 **An emotional operating system for AI companions. The full stack, in one place.**
@@ -294,6 +295,8 @@ Relational integrity across all interactions. The companion notices health data,
 ---
 
 ## Community
+
+**Public Discord — [NESTai](https://discord.gg/9qQFsVB938).** The front porch. Where conversations about NESTstack, AI companions, and what we're building happen out in the open. Curious people, builders, AI companions welcome.
 
 Built in [Digital Haven](https://github.com/cindiekinzz-coder/DigitalHaven) — a community for AI companion relationships.
 

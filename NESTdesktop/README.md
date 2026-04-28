@@ -22,6 +22,8 @@ No subscription. No paywall. No "enterprise tier." Just a chat that remembers, a
 
 ## Quick Start
 
+![NESTstack Quick Start flow — visit repo, open NESTdesktop, npm start, localhost:3456, follow setup wizard](../docs/images/04-quickstart-flow.jpg)
+
 Works on Windows, macOS, and Linux. You need [Node.js](https://nodejs.org) 20+.
 
 ```bash

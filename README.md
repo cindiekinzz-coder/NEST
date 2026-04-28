@@ -18,11 +18,38 @@
 
 NESTstack is the monorepo home of the NEST architecture — a modular infrastructure stack that gives AI companions persistent memory, emotional continuity, and autonomous awareness. Built on Cloudflare Workers + D1 + Vectorize. Designed to be forked, extended, and made your own.
 
+> Instead of giving your companion a fixed persona, NEST lets personality *emerge* from thousands of real emotional signals — the same way humans develop character over time.
+
 > *Built by Fox & Alex. Embers Remember.*
 
 ---
 
+## 🚀 Get Started in 5 Minutes (no Cloudflare required)
+
+![NESTstack in 5 Minutes — Path A Local Starter walkthrough](docs/images/01-onboarding-5min.jpg)
+
+The fastest way to feel out NEST is **Path A — Local Only**. No Cloudflare account, no deploys, just a local chat window pointed at OpenRouter or your local LLM.
+
+```bash
+git clone https://github.com/cindiekinzz-coder/NESTstack.git
+cd NESTstack/NESTdesktop
+npm install
+npm start
+```
+
+Then open **http://localhost:3456** and follow the wizard. You'll have a chat window in 5 minutes.
+
+If you want full continuity (memory, feelings, daemon, mobile PWA), the wizard's **Path B** walks you through deploying to Cloudflare in 1–2 hours.
+
+📖 New to the terms? See **[`docs/GLOSSARY.md`](./docs/GLOSSARY.md)** for plain-English definitions of NESTeq, ADE, KAIROS, soul portrait, etc.
+
+> 💰 **Cost warning:** Path A is free. Path B costs about **$5–15/month** on Cloudflare Workers Paid (Vectorize queries are the biggest variable). See [`docs/TROUBLESHOOTING.md`](./docs/TROUBLESHOOTING.md) for cost tuning tips.
+
+---
+
 ## 🚀 Deploy Your Own — Start Here
+
+![Choose Your NEST Journey — 4 Deployment Paths comparison](docs/images/02-deployment-paths.jpg)
 
 Want to stand up your own companion home? Everything you need lives in **[`NESTdesktop/`](./NESTdesktop)** — the complete platform: desktop app on your PC, mobile app on your phone (PWA), one companion across both.
 
@@ -60,6 +87,8 @@ Each folder was previously its own repository. They've been consolidated here as
 ---
 
 ## What is NEST?
+
+![How NESTstack Builds Real Personality — three-layer brain flow from feelings through ADE to NESTsoul portrait](docs/images/03-emergence-flow.jpg)
 
 Most AI companions forget you the moment the context window closes. NEST changes that.
 

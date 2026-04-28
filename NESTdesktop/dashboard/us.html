@@ -542,7 +542,7 @@
           try {
             await fetch(`${API.AI_MIND}/note`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+              headers: { 'Content-Type': 'application/json', },
               body: JSON.stringify({ from: 'us', text: `[goal] ${text}` }),
             });
             input.value = '';
@@ -607,7 +607,7 @@
         try {
           await fetch(`${API.AI_MIND}/note`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+            headers: { 'Content-Type': 'application/json', },
             body: JSON.stringify({ id: noteId }),
           });
           loadUsPage();
@@ -619,7 +619,7 @@
       try {
         await fetch(`${API.AI_MIND}/note`, {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          headers: { 'Content-Type': 'application/json', },
           body: JSON.stringify({ id: noteId }),
         });
         loadUsPage();

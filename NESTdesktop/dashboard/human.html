@@ -664,7 +664,7 @@ Notes:    ${f.notes || '—'}
       try {
         const data = getUplinkData();
         console.log('Sending uplink:', data);
-        const res = await fetch(`${API.FOX_MIND}/uplink`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` }, body: JSON.stringify(data) });
+        const res = await fetch(`${API.FOX_MIND}/uplink`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
         const result = await res.json();
         console.log('Uplink response:', res.status, result);
         if (res.ok) {
@@ -764,7 +764,7 @@ Notes:    ${f.notes || '—'}
     async function saveJournal(content, emotion, tags) {
       try {
         const res = await fetch(`${API.FOX_MIND}/journals`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content, emotion, tags }),
         });
         if (res.ok) {

@@ -742,7 +742,7 @@
     async function loadDrives() {
       try {
         const res = await fetch(`${API.AI_MIND}/drives`, {
-          headers: { 'Authorization': `Bearer ${API.API_KEY}` }
+          // Auth attached server-side by the /api/* proxy.
         });
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
@@ -1128,7 +1128,7 @@
       try {
         // Try to get last session dates to show "due" status
         const res = await fetch(`${API.AI_MIND}/knowledge-sessions?scope=companion`, {
-          headers: { 'Authorization': `Bearer ${API.API_KEY}` }
+          // Auth attached server-side by the /api/* proxy.
         });
         const data = await res.json();
         const lastMap = {};
@@ -1255,7 +1255,7 @@
       const el = document.getElementById('sessionsCard');
       try {
         const res = await fetch(`${API.AI_MIND}/knowledge-sessions?scope=companion`, {
-          headers: { 'Authorization': `Bearer ${API.API_KEY}` }
+          // Auth attached server-side by the /api/* proxy.
         });
         const data = await res.json();
 

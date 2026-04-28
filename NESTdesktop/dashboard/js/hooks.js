@@ -175,10 +175,8 @@ const Hooks = {
     }
     try {
       const res = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${API.API_KEY}`,
-          'Content-Type': 'application/json',
-        },
+        // Auth attached server-side by the /api/* proxy.
+        headers: { 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(3000),
       });
       if (!res.ok) return this._cache[key] || null;

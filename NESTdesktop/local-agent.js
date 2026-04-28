@@ -261,8 +261,26 @@ const MIME_TYPES = {
 };
 
 // --- Dashboard Server (port 3456) ---
+// Allowed CORS origins — only the dashboard's own host. Browsers honour this and refuse to
+// send cookies / auth headers cross-origin, which keeps a malicious page from another tab
+// hitting our /api/* proxy with the user already authenticated.
+const ALLOWED_ORIGINS = [
+  'http://localhost:3456',
+  'http://127.0.0.1:3456',
+];
+
+const corsOptions = {
+  origin: (origin, cb) => {
+    // Allow same-origin / curl / fetch with no Origin header (Tauri webview, dev tools).
+    if (!origin) return cb(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error('CORS: origin not allowed'));
+  },
+  credentials: true,
+};
+
 const dashboard = express();
-dashboard.use(cors());
+dashboard.use(cors(corsOptions));
 dashboard.use(express.json({ limit: '50mb' }));
 
 // Public config only — never return secrets to the browser
@@ -479,8 +497,12 @@ dashboard.get('{*any}', (req, res) => {
 });
 
 // --- PC Agent Server (port 3457) ---
+// Same-origin policy: pc-tools execute filesystem ops + spawn processes on the user's
+// machine, so they must not be reachable from a malicious web page in another tab.
+// Combined with the 127.0.0.1 listener below, this means only the local dashboard
+// (running on the same machine, on the allowed origin) can hit them.
 const agent = express();
-agent.use(cors());
+agent.use(cors(corsOptions));
 agent.use(express.json({ limit: '50mb' }));
 
 agent.get('/health', (req, res) => {
@@ -492,7 +514,12 @@ agent.use('/pc', pcTools);
 // --- Start ---
 await loadConfig();
 
-const dashServer = dashboard.listen(3456, () => {
+// Bind to loopback only — never reachable from the local network or wider internet.
+// If you need to expose this to other devices, you should be doing it through a
+// reverse proxy with auth, not by changing this binding.
+const BIND_HOST = '127.0.0.1';
+
+const dashServer = dashboard.listen(3456, BIND_HOST, () => {
   console.log('');
   console.log('  NESTeq Community — Dashboard is open.');
   console.log('  http://localhost:3456');
@@ -511,7 +538,7 @@ dashServer.on('error', (err) => {
   process.exit(1);
 });
 
-const agentServer = agent.listen(3457, () => {
+const agentServer = agent.listen(3457, BIND_HOST, () => {
   console.log('  PC Agent:  http://localhost:3457');
   console.log('  Press Ctrl+C to stop.');
   console.log('');

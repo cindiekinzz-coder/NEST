@@ -544,7 +544,7 @@
       try {
         await fetch(`${API.AI_MIND}/love`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ who: 'human' }),
         });
         setTimeout(loadDisplay, 1000);

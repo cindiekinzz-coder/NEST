@@ -808,7 +808,7 @@
       try {
         const res = await fetch(`${API.AI_MIND}/love`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ who }),
         });
 
@@ -890,7 +890,7 @@
       try {
         await fetch(`${API.AI_MIND}/note`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ from: 'human', text }),
         });
         input.value = '';
@@ -1046,7 +1046,7 @@
 
         const res = await fetch(`${API.AI_MIND}/pet/interact`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
 
@@ -1087,7 +1087,7 @@
       try {
         const res = await fetch(`${API.AI_MIND}/pet/interact`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API.API_KEY}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'give', item }),
         });
 

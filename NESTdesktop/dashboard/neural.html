@@ -244,7 +244,7 @@
       try {
         // Fetch entities
         const entitiesRes = await fetch(`${API.AI_MIND}/entities`, {
-          headers: { 'Authorization': `Bearer ${API.API_KEY}` }
+          // Auth attached server-side by the /api/* proxy.
         });
         if (!entitiesRes.ok) throw new Error('Failed to fetch entities');
         const entitiesJson = await entitiesRes.json();
@@ -252,7 +252,7 @@
 
         // Fetch relations
         const relationsRes = await fetch(`${API.AI_MIND}/relations`, {
-          headers: { 'Authorization': `Bearer ${API.API_KEY}` }
+          // Auth attached server-side by the /api/* proxy.
         });
         if (!relationsRes.ok) throw new Error('Failed to fetch relations');
         const relationsJson = await relationsRes.json();

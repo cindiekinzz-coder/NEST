@@ -1,10 +1,36 @@
 import { Router } from 'express';
-import { exec, execFile } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { normalize, isAbsolute } from 'path';
 
-const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
 const router = Router();
+
+function assertSafeSearchPath(p) {
+  if (p === undefined || p === null || p === '' || p === '.') return null;
+  if (typeof p !== 'string') {
+    const e = new Error('path must be a string');
+    e.status = 400;
+    throw e;
+  }
+  if (p.includes('\0')) {
+    const e = new Error('path contains null bytes');
+    e.status = 400;
+    throw e;
+  }
+  const n = normalize(p);
+  if (n.split(/[\\/]/).some((seg) => seg === '..')) {
+    const e = new Error('path traversal segments are not allowed');
+    e.status = 403;
+    throw e;
+  }
+  if (!isAbsolute(n)) {
+    const e = new Error('path must be absolute');
+    e.status = 400;
+    throw e;
+  }
+  return n;
+}
 
 // Try to find ripgrep binary
 async function findRg() {
@@ -32,7 +58,7 @@ router.post('/grep', async (req, res) => {
   try {
     const {
       pattern,
-      path: searchPath,
+      path: searchPathRaw,
       glob: globFilter,
       type,
       output_mode = 'files_with_matches',
@@ -42,13 +68,32 @@ router.post('/grep', async (req, res) => {
       head_limit = 250,
     } = req.body;
 
-    if (!pattern) return res.status(400).json({ error: 'pattern is required' });
+    if (!pattern || typeof pattern !== 'string') {
+      return res.status(400).json({ error: 'pattern is required and must be a string' });
+    }
+    if (pattern.includes('\0')) {
+      return res.status(400).json({ error: 'pattern contains null bytes' });
+    }
+    if (typeof type !== 'undefined' && (typeof type !== 'string' || !/^[a-zA-Z0-9_+-]+$/.test(type))) {
+      return res.status(400).json({ error: 'type contains disallowed characters' });
+    }
+    if (typeof globFilter !== 'undefined' && (typeof globFilter !== 'string' || globFilter.includes('\0'))) {
+      return res.status(400).json({ error: 'glob is invalid' });
+    }
+
+    const searchPath = assertSafeSearchPath(searchPathRaw);
+    const safeHeadLimit = Number.isFinite(Number(head_limit))
+      ? Math.max(1, Math.min(10000, Math.trunc(Number(head_limit))))
+      : 250;
+    const safeContext = Number.isFinite(Number(context))
+      ? Math.max(0, Math.min(100, Math.trunc(Number(context))))
+      : null;
 
     // Find rg once
-    if (rgPath === null) rgPath = await findRg() || false;
+    if (rgPath === null) rgPath = (await findRg()) || false;
 
     if (rgPath) {
-      // Use ripgrep
+      // Use ripgrep — execFile with array args, no shell interpretation
       const args = [];
       if (output_mode === 'files_with_matches') args.push('-l');
       else if (output_mode === 'count') args.push('-c');
@@ -56,11 +101,11 @@ router.post('/grep', async (req, res) => {
 
       if (case_insensitive) args.push('-i');
       if (multiline) args.push('-U', '--multiline-dotall');
-      if (context) args.push('-C', String(context));
+      if (safeContext !== null) args.push('-C', String(safeContext));
       if (globFilter) args.push('--glob', globFilter);
       if (type) args.push('--type', type);
       args.push('--max-count', '1000');
-      args.push(pattern);
+      args.push('--', pattern);
       args.push(searchPath || '.');
 
       const { stdout } = await execFileAsync(rgPath, args, {
@@ -73,28 +118,48 @@ router.post('/grep', async (req, res) => {
       });
 
       const lines = stdout.split('\n').filter(Boolean);
-      const truncated = lines.length > head_limit;
-      const result = lines.slice(0, head_limit);
+      const truncated = lines.length > safeHeadLimit;
+      const result = lines.slice(0, safeHeadLimit);
       return res.json({ output: result.join('\n'), matches: result.length, truncated });
     }
 
-    // Fallback: PowerShell Select-String
+    // Fallback: PowerShell Select-String — pass values as PS variables via -ArgumentList
+    // instead of interpolating into the command string. Eliminates the injection vector
+    // that came from concatenating pattern/cwd/globFilter into a shell-parsed string.
     const cwd = searchPath || process.cwd();
-    const flags = case_insensitive ? '' : '-CaseSensitive';
-    const recurse = '-Recurse';
-    const fileFilter = globFilter ? `-Include "${globFilter}"` : '';
-    const cmd = `Get-ChildItem -Path "${cwd}" ${recurse} ${fileFilter} -File | Select-String -Pattern "${pattern.replace(/"/g, '`"')}" ${flags} | Select-Object -First ${head_limit} | ForEach-Object { $_.Path + ':' + $_.LineNumber + ':' + $_.Line }`;
-
-    const { stdout } = await execAsync(`powershell.exe -Command "${cmd.replace(/"/g, '\\"')}"`, {
-      timeout: 30000,
-      maxBuffer: 10 * 1024 * 1024,
-      windowsHide: true,
-    }).catch(() => ({ stdout: '' }));
+    const psScript = `
+      param($Path, $Pattern, $Glob, $CaseSensitive, $Limit)
+      $params = @{ Path = $Path; Recurse = $true; File = $true }
+      if ($Glob) { $params['Include'] = $Glob }
+      Get-ChildItem @params | Select-String -Pattern $Pattern -CaseSensitive:$CaseSensitive |
+        Select-Object -First $Limit |
+        ForEach-Object { $_.Path + ':' + $_.LineNumber + ':' + $_.Line }
+    `;
+    const { stdout } = await execFileAsync(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-Command',
+        psScript,
+        '-Path', cwd,
+        '-Pattern', pattern,
+        '-Glob', globFilter || '',
+        '-CaseSensitive', case_insensitive ? '$false' : '$true',
+        '-Limit', String(safeHeadLimit),
+      ],
+      {
+        timeout: 30000,
+        maxBuffer: 10 * 1024 * 1024,
+        windowsHide: true,
+      },
+    ).catch(() => ({ stdout: '' }));
 
     const lines = stdout.split('\n').filter(Boolean);
     res.json({ output: lines.join('\n'), matches: lines.length, truncated: false, engine: 'powershell' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (err.status) return res.status(err.status).json({ error: err.message });
+    console.error('[pc-tools/grep] error:', err);
+    res.status(500).json({ error: 'grep failed' });
   }
 });
 

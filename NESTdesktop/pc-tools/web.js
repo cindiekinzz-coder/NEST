@@ -38,7 +38,8 @@ router.post('/fetch', async (req, res) => {
       res.json({ content: truncated, url, contentType, originalLength: text.length });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[pc-tools/web/fetch] error:', err);
+    res.status(500).json({ error: 'fetch failed' });
   }
 });
 
@@ -51,7 +52,11 @@ router.post('/search', async (req, res) => {
     if (!query) return res.status(400).json({ error: 'query is required' });
 
     const apiKey = process.env.TAVILY_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'TAVILY_API_KEY not set' });
+    if (!apiKey) {
+      // Don't reveal which env var is missing in the public response.
+      console.error('[pc-tools/web/search] TAVILY_API_KEY not set');
+      return res.status(503).json({ error: 'search service not configured' });
+    }
 
     const resp = await fetch('https://api.tavily.com/search', {
       method: 'POST',
@@ -76,7 +81,8 @@ router.post('/search', async (req, res) => {
       })),
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[pc-tools/web/search] error:', err);
+    res.status(500).json({ error: 'search failed' });
   }
 });
 

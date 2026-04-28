@@ -38,7 +38,8 @@ router.get('/screenshot', async (req, res) => {
 
     res.json({ type: 'image/png', base64, size: buf.length });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[pc-tools/screenshot] error:', err);
+    res.status(500).json({ error: 'screenshot failed' });
   }
 });
 

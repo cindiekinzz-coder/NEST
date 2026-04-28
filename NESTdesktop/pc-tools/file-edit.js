@@ -1,7 +1,33 @@
 import { Router } from 'express';
 import { readFile, writeFile } from 'fs/promises';
+import { normalize, isAbsolute } from 'path';
 
 const router = Router();
+
+function assertSafePath(p) {
+  if (typeof p !== 'string' || p.length === 0) {
+    const e = new Error('path must be a non-empty string');
+    e.status = 400;
+    throw e;
+  }
+  if (p.includes('\0')) {
+    const e = new Error('path contains null bytes');
+    e.status = 400;
+    throw e;
+  }
+  const n = normalize(p);
+  if (n.split(/[\\/]/).some((seg) => seg === '..')) {
+    const e = new Error('path traversal segments are not allowed');
+    e.status = 403;
+    throw e;
+  }
+  if (!isAbsolute(n)) {
+    const e = new Error('path must be absolute');
+    e.status = 400;
+    throw e;
+  }
+  return n;
+}
 
 /**
  * Precise string replacement — modeled after Claude Code's FileEditTool.
@@ -12,11 +38,13 @@ router.post('/edit', async (req, res) => {
   try {
     const { path, old_string, new_string, replace_all = false } = req.body;
     if (!path) return res.status(400).json({ error: 'path is required' });
-    if (old_string === undefined) return res.status(400).json({ error: 'old_string is required' });
-    if (new_string === undefined) return res.status(400).json({ error: 'new_string is required' });
+    if (typeof old_string !== 'string') return res.status(400).json({ error: 'old_string is required and must be a string' });
+    if (typeof new_string !== 'string') return res.status(400).json({ error: 'new_string is required and must be a string' });
     if (old_string === new_string) return res.status(400).json({ error: 'old_string and new_string must be different' });
 
-    const content = await readFile(path, 'utf-8');
+    const safePath = assertSafePath(path);
+
+    const content = await readFile(safePath, 'utf-8');
 
     // Count occurrences
     const occurrences = content.split(old_string).length - 1;
@@ -43,14 +71,15 @@ router.post('/edit', async (req, res) => {
       newContent = content.replace(old_string, new_string);
     }
 
-    await writeFile(path, newContent, 'utf-8');
+    await writeFile(safePath, newContent, 'utf-8');
 
     res.json({
       success: true,
-      path,
+      path: safePath,
       replacements: replace_all ? occurrences : 1,
     });
   } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
     res.status(err.code === 'ENOENT' ? 404 : 500).json({ error: err.message });
   }
 });

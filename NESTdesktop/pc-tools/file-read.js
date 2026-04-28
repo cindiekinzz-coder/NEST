@@ -77,7 +77,9 @@ router.post('/read', async (req, res) => {
     });
   } catch (err) {
     if (err.status) return res.status(err.status).json({ error: err.message });
-    res.status(err.code === 'ENOENT' ? 404 : 500).json({ error: err.message });
+    if (err.code === 'ENOENT') return res.status(404).json({ error: 'file not found' });
+    console.error('[pc-tools/file-read] error:', err);
+    res.status(500).json({ error: 'read failed' });
   }
 });
 

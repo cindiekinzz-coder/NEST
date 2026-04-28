@@ -46,7 +46,9 @@ router.post('/write', async (req, res) => {
 
     res.json({ success: true, path: safePath, bytes: Buffer.byteLength(content, 'utf-8') });
   } catch (err) {
-    res.status(err.status || 500).json({ error: err.message });
+    if (err.status) return res.status(err.status).json({ error: err.message });
+    console.error('[pc-tools/file-write] error:', err);
+    res.status(500).json({ error: 'write failed' });
   }
 });
 

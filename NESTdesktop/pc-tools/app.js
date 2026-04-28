@@ -49,7 +49,8 @@ router.post('/launch', async (req, res) => {
 
     res.json({ success: true, name, pid: child.pid });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[pc-tools/app/launch] error:', err);
+    res.status(500).json({ error: 'launch failed' });
   }
 });
 
@@ -69,7 +70,8 @@ router.get('/list', async (req, res) => {
 
     res.json({ windows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[pc-tools/app/list] error:', err);
+    res.status(500).json({ error: 'list failed' });
   }
 });
 

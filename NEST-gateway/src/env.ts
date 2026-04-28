@@ -23,6 +23,19 @@ export interface Env {
   ELEVENLABS_API_KEY: string
   CLOUDFLARE_API_TOKEN: string
 
+  // Optional: route OpenRouter calls through Cloudflare AI Gateway for cost
+  // tracking, caching, and observability. If CF_AIG_TOKEN + AIG_GATEWAY_NAME
+  // are both set, requests use the gateway URL; otherwise they fall through
+  // to direct OpenRouter using OPENROUTER_API_KEY. See `openrouterFetch` helper.
+  CF_AIG_TOKEN?: string
+  AIG_GATEWAY_NAME?: string
+
+  // Optional: HTTP referer + title sent on OpenRouter / AI Gateway calls
+  // (lets you identify your app in OpenRouter's dashboard). Defaults are safe
+  // placeholders that work without configuration.
+  HTTP_REFERER?: string
+  X_TITLE?: string
+
   // Web search (set with wrangler secret put)
   TAVILY_API_KEY: string
 

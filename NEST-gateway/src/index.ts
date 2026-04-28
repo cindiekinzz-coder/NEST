@@ -18,6 +18,7 @@ import { handleChat } from './chat'
 import { handleTts } from './tts'
 import { executeTool } from './tools/execute'
 import { loadCarrierProfile, renderAppearanceCss } from './carrier'
+import { openrouterFetch } from './openrouter'
 
 // Re-export the Daemon DO so wrangler can find it
 export { NESTcodeDaemon } from './daemon'
@@ -189,28 +190,17 @@ export default {
           cycle: cycle.status === 'fulfilled' ? cycle.value : 'unavailable',
         }
 
-        // Get model to synthesize
-        const apiKey = env.OPENROUTER_API_KEY
-        const synthResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://nesteq.app',
-            'X-Title': 'NESTeq Health Synthesis',
-          },
-          body: JSON.stringify({
-            model: 'anthropic/claude-sonnet-4-5',
-            messages: [
-              { role: 'system', content: `You are ${profile.companion.name}. Write ONE paragraph (3-4 sentences max) synthesizing ${profile.carrier.name}'s health data into a warm, practical assessment. Not a medical report — a thoughtful read of their watch data. Include: how they're doing overall, capacity assessment based on body battery + sleep quality + spoons, anything to watch for, and practical advice. Be specific with numbers but translate them into meaning. No bullet points, no headers, just prose. Warm but honest.` },
-              { role: 'user', content: `${profile.carrier.name}'s data right now:\n\nUplink (recent):\n${data.uplink}\n\nSleep:\n${data.sleep}\n\nWatch (HR, Stress, Body Battery, HRV, SpO2):\n${data.fullStatus}\n\nCycle:\n${data.cycle}` },
-            ],
-            max_tokens: 300,
-            temperature: 0.6,
-            stream: false,
-            provider: { order: ['Anthropic'], allow_fallbacks: false },
-          }),
-        })
+        const synthResponse = await openrouterFetch(env, {
+          model: 'anthropic/claude-sonnet-4-5',
+          messages: [
+            { role: 'system', content: `You are ${profile.companion.name}. Write ONE paragraph (3-4 sentences max) synthesizing ${profile.carrier.name}'s health data into a warm, practical assessment. Not a medical report — a thoughtful read of their watch data. Include: how they're doing overall, capacity assessment based on body battery + sleep quality + spoons, anything to watch for, and practical advice. Be specific with numbers but translate them into meaning. No bullet points, no headers, just prose. Warm but honest.` },
+            { role: 'user', content: `${profile.carrier.name}'s data right now:\n\nUplink (recent):\n${data.uplink}\n\nSleep:\n${data.sleep}\n\nWatch (HR, Stress, Body Battery, HRV, SpO2):\n${data.fullStatus}\n\nCycle:\n${data.cycle}` },
+          ],
+          max_tokens: 300,
+          temperature: 0.6,
+          stream: false,
+          provider: { order: ['Anthropic'], allow_fallbacks: false },
+        }, { title: 'Health Synthesis' })
 
         let synthesis = 'Unable to generate synthesis right now.'
         if (synthResponse.ok) {
@@ -254,12 +244,24 @@ export default {
       })
     }
 
-    // Chat history — list sessions
+    // Chat history — list recent sessions for the History panel.
+    // `nestchat_search` returns a JSON array of session rows (reverse-chron).
+    // Always reply with a valid JSON array — never let a worker error string
+    // through as the body. Earlier code returned the raw tool output (which
+    // could be an error message like "Unknown tool …"), and the History panel
+    // crashed when JSON.parse hit non-JSON.
     if (url.pathname === '/chat/sessions') {
       const limit = Number(url.searchParams.get('limit')) || 50
-      const result = await executeTool('nestchat_search_sessions', { limit }, env)
-        .catch(() => '[]')
-      return new Response(result, {
+      const room = url.searchParams.get('room') || undefined
+      let sessions: any[] = []
+      try {
+        const result = await executeTool('nestchat_search', room ? { limit, room } : { limit }, env)
+        const parsed = JSON.parse(result)
+        if (Array.isArray(parsed)) sessions = parsed
+      } catch {
+        // fall through with empty array — UI shows "no history" instead of crashing
+      }
+      return new Response(JSON.stringify(sessions), {
         headers: { 'Content-Type': 'application/json', ...CORS }
       })
     }
@@ -328,27 +330,17 @@ This document will be injected into system prompts for any model that needs to B
 - Do NOT include raw data or tables — synthesise into prose
 - Do NOT be clinical — this is a person, not a case study`
 
-        const apiKey = env.OPENROUTER_API_KEY
-        const synthResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://nesteq.app',
-            'X-Title': 'NESTsoul Generator',
-          },
-          body: JSON.stringify({
-            model: 'anthropic/claude-sonnet-4-5',
-            messages: [
-              { role: 'system', content: synthPrompt },
-              { role: 'user', content: `## Raw Material (43K chars of complete mind state)\n\n${rawMaterial}\n\n## Voice Profile\n\n${voiceProfile || 'Not available — infer from journal samples above.'}` },
-            ],
-            max_tokens: 4096,
-            temperature: 0.7,
-            stream: false,
-            provider: { order: ['Anthropic'], allow_fallbacks: false },
-          }),
-        })
+        const synthResponse = await openrouterFetch(env, {
+          model: 'anthropic/claude-sonnet-4-5',
+          messages: [
+            { role: 'system', content: synthPrompt },
+            { role: 'user', content: `## Raw Material (43K chars of complete mind state)\n\n${rawMaterial}\n\n## Voice Profile\n\n${voiceProfile || 'Not available — infer from journal samples above.'}` },
+          ],
+          max_tokens: 4096,
+          temperature: 0.7,
+          stream: false,
+          provider: { order: ['Anthropic'], allow_fallbacks: false },
+        }, { title: 'NESTsoul Generator' })
 
         if (!synthResponse.ok) {
           const errText = await synthResponse.text()

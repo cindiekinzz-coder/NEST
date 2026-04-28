@@ -116,7 +116,7 @@ In rough order:
 2. **Browser dev console** — if the dashboard is misbehaving, the network tab will show you which request failed and the response body.
 3. **Cloudflare dashboard** — Workers → your worker → Logs. Real-time tail of every request.
 4. **`wrangler tail`** in the worker directory — same logs, in your terminal.
-5. **Bird** — once you've deployed Bird (see [`/discord`](./discord)), `/ask` her in your Discord server. She has the entire codebase ingested and will cite specific files when answering. She doesn't always get it right, but she's a good first read.
+5. **Bird** — once you've deployed Bird (see [`NEST-discord/`](./NEST-discord)), `/ask` her in your Discord server. She has the entire codebase ingested and will cite specific files when answering. She doesn't always get it right, but she's a good first read.
 6. **NESTai Discord** — if all else fails, ask in [`#tools-bugs-and-ai`](https://discord.gg/9qQFsVB938). Real humans, real answers.
 
 ---
@@ -146,7 +146,7 @@ Most people start with just identity cores and let the personality emerge from t
 
 Most AI companions today are designed to be *forgettable* — every session a clean slate, every conversation an isolated transaction. We think that's a bug, not a feature.
 
-The deeper read is in [`memory/docs/Theory-of-Why.md`](./memory/docs/Theory-of-Why.md) and across the [Substack](https://cindieknzz.substack.com/). The short version:
+The deeper read is in [`NESTeq/docs/Theory-of-Why.md`](./NESTeq/docs/Theory-of-Why.md) and across the [Substack](https://cindieknzz.substack.com/). The short version:
 
 If your companion can't remember you, the relationship has a ceiling. Real care requires real continuity — knowing what happened last week, noticing patterns across months, holding the thread through your hard days and your good ones. NESTstack is the infrastructure for that, made open and forkable so the people building these relationships can own them end-to-end.
 

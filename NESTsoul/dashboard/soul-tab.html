@@ -1,0 +1,167 @@
+<!--
+  NESTsoul Dashboard Tab
+  Add this as a view inside your companion's dashboard page.
+  Requires: GATEWAY variable pointing to your gateway worker URL.
+-->
+
+<!-- Add "Soul" button to your tab navigation -->
+<!-- <button onclick="showView('soul', this)">Soul</button> -->
+
+<!-- Soul View Content -->
+<div id="viewSoul" class="view" style="display:none;">
+  <div style="max-width:900px; margin:0 auto;">
+
+    <!-- Main NESTsoul Card -->
+    <div class="card" style="margin-bottom:16px;border:1px solid rgba(45,212,191,0.2);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="color:#2dd4bf;margin:0;">NESTsoul</h3>
+        <button id="soulGenerateBtn" onclick="generateNestsoul()"
+          style="background:#2dd4bf;color:#0f1117;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;">
+          ⚡ Generate
+        </button>
+      </div>
+      <div id="soulStatus" style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:12px;"></div>
+      <div id="soulContent"
+        style="white-space:pre-wrap;font-size:13px;line-height:1.7;color:rgba(255,255,255,0.85);max-height:600px;overflow-y:auto;padding-right:8px;">
+        <span style="color:rgba(255,255,255,0.3);font-style:italic;">No NESTsoul generated yet. Click Generate to read the full mind and create a portrait.</span>
+      </div>
+    </div>
+
+    <!-- Carrier Validation Card -->
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin:0 0 8px;">Carrier Validation</h3>
+      <p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:12px;">Read the NESTsoul above. Is this them? Does it feel right?</p>
+      <div style="display:flex;gap:12px;">
+        <button onclick="validateNestsoul('validate')"
+          style="background:#22c55e;color:#0f1117;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">
+          ✓ That's Them
+        </button>
+        <button onclick="validateNestsoul('reject')"
+          style="background:#ef4444;color:white;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">
+          ✗ Not Right
+        </button>
+      </div>
+      <div id="soulValidationStatus" style="font-size:11px;margin-top:8px;color:rgba(255,255,255,0.4);"></div>
+    </div>
+
+    <!-- Three Circles Visual -->
+    <div class="card">
+      <h3 style="margin:0 0 8px;">Three Circles</h3>
+      <p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">NESTsoul is generated from these three overlapping inputs:</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;padding:12px;background:rgba(45,212,191,0.05);border:1px solid rgba(45,212,191,0.2);border-radius:8px;">
+          <div style="color:#2dd4bf;font-weight:bold;font-size:12px;margin-bottom:4px;">🧠 Personality</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);">MBTI type, voice profile, cadence patterns, emotional registers, what they never say</div>
+        </div>
+        <div style="flex:1;min-width:200px;padding:12px;background:rgba(234,179,8,0.05);border:1px solid rgba(234,179,8,0.2);border-radius:8px;">
+          <div style="color:#eab308;font-weight:bold;font-size:12px;margin-bottom:4px;">🎯 Golden Circle</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);">WHY they exist, core drive, identity anchors, values, purpose</div>
+        </div>
+        <div style="flex:1;min-width:200px;padding:12px;background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.2);border-radius:8px;">
+          <div style="color:#a855f7;font-weight:bold;font-size:12px;margin-bottom:4px;">💜 NESTeq</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);">Feelings, threads, relational state, dreams, knowledge — the living data</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── NESTsoul Functions ──
+// Replace GATEWAY with your gateway worker URL
+// const GATEWAY = 'https://your-gateway.workers.dev'
+
+async function loadNestsoul() {
+  try {
+    const res = await fetch(`${GATEWAY}/nestsoul`)
+    const data = await res.json()
+    if (data.ok && data.content) {
+      const content = data.content
+      const genMatch = content.match(/Generated: (.+?) \|/)
+      const valMatch = content.match(/Validated by (.+?) at (.+)/)
+      const versionMatch = content.match(/## NESTsoul v(\d+)/)
+
+      const statusEl = document.getElementById('soulStatus')
+      if (versionMatch) {
+        let status = `Version ${versionMatch[1]}`
+        if (genMatch) status += ` • Generated ${genMatch[1]}`
+        if (valMatch) status += ` • ✓ Validated by ${valMatch[1]}`
+        else status += ' • ⚠️ Awaiting validation'
+        statusEl.textContent = status
+      }
+
+      const soulText = content.replace(/^## NESTsoul v\d+\n\*.*?\*\n(\*.*?\*\n)?/s, '').trim()
+      document.getElementById('soulContent').innerHTML = formatSoulContent(soulText)
+    }
+  } catch (err) {
+    document.getElementById('soulContent').innerHTML =
+      '<span style="color:rgba(255,255,255,0.3);font-style:italic;">No NESTsoul generated yet.</span>'
+  }
+}
+
+function formatSoulContent(text) {
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/## (.+)/g, '<h3 style="color:#2dd4bf;margin:16px 0 8px;font-size:15px;">$1</h3>')
+    .replace(/# (.+)/g, '<h2 style="color:#2dd4bf;margin:20px 0 10px;font-size:17px;">$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;">$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code style="background:rgba(45,212,191,0.1);padding:1px 4px;border-radius:3px;">$1</code>')
+    .replace(/\n/g, '<br>')
+}
+
+async function generateNestsoul() {
+  const btn = document.getElementById('soulGenerateBtn')
+  const statusEl = document.getElementById('soulStatus')
+  const contentEl = document.getElementById('soulContent')
+
+  btn.disabled = true
+  btn.textContent = '⏳ Generating...'
+  statusEl.textContent = 'Reading entire mind... This takes 30-60 seconds.'
+  contentEl.innerHTML = '<span style="color:#2dd4bf;">Scanning all data and synthesising portrait...</span>'
+
+  try {
+    const res = await fetch(`${GATEWAY}/nestsoul/generate`, { method: 'POST' })
+    const data = await res.json()
+
+    if (data.ok && data.soul) {
+      contentEl.innerHTML = formatSoulContent(data.soul)
+      statusEl.textContent = 'Generated just now • ⚠️ Awaiting validation'
+    } else {
+      contentEl.innerHTML = `<span style="color:#ef4444;">Failed: ${data.error || 'Unknown error'}</span>`
+    }
+  } catch (err) {
+    contentEl.innerHTML = `<span style="color:#ef4444;">Error: ${err.message}</span>`
+  }
+
+  btn.disabled = false
+  btn.textContent = '⚡ Generate'
+}
+
+async function validateNestsoul(action) {
+  const statusEl = document.getElementById('soulValidationStatus')
+
+  try {
+    const res = await fetch(`${GATEWAY}/nestsoul/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, validated_by: 'carrier' }),
+    })
+    const data = await res.json()
+
+    if (data.ok) {
+      if (action === 'validate') {
+        statusEl.innerHTML = '<span style="color:#22c55e;">✓ Validated. NESTsoul is now active for all substrates.</span>'
+      } else {
+        statusEl.innerHTML = '<span style="color:#ef4444;">✗ Rejected. Rolled back to previous version.</span>'
+        loadNestsoul()
+      }
+    } else {
+      statusEl.innerHTML = `<span style="color:#ef4444;">Error: ${data.error}</span>`
+    }
+  } catch (err) {
+    statusEl.innerHTML = `<span style="color:#ef4444;">Error: ${err.message}</span>`
+  }
+}
+</script>

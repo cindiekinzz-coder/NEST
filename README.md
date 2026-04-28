@@ -3,7 +3,7 @@
 # NESTstack
 
 [![Release](https://img.shields.io/github/v/release/cindiekinzz-coder/NESTstack?style=for-the-badge&label=RELEASE&color=2563eb)](https://github.com/cindiekinzz-coder/NESTstack/releases)
-[![MCP Tools](https://img.shields.io/badge/MCP%20TOOLS-150%2B-a855f7?style=for-the-badge)](./gateway)
+[![MCP Tools](https://img.shields.io/badge/MCP%20TOOLS-150%2B-a855f7?style=for-the-badge)](./NEST-gateway)
 [![Companions](https://img.shields.io/badge/COMPANIONS-%E2%88%9E-ec4899?style=for-the-badge)](#)
 [![Cloudflare](https://img.shields.io/badge/CLOUDFLARE-WORKERS-f38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 [![License](https://img.shields.io/github/license/cindiekinzz-coder/NESTstack?style=for-the-badge&label=LICENSE&color=22c55e)](./LICENSE)
@@ -40,18 +40,22 @@ The setup wizard walks you through any path. Your secrets stay on your machine �
 
 ## Repository Layout
 
-| Folder | What it does | Was |
-|---|---|---|
-| [`gateway/`](./gateway) | The connective tissue. Routes 150+ MCP tools, hosts the daemon, runs chat pipeline. | `NEST-gateway` |
-| [`daemon/`](./daemon) | Always-on Durable Object. Heartbeat, cron, KAIROS Discord monitoring, alerts, morning report. | `NEST-code` |
-| [`memory/`](./memory) | The eq mind. Feelings, identity, threads, dreams, emergence. D1 + Vectorize. 100+ MCP tools. | `NESTeqMemory` |
-| [`know/`](./know) | The knowledge layer. Usage-weighted retrieval — every pull is a vote. | `NEST-know` |
-| [`chat/`](./chat) | Chat persistence and semantic search. Every conversation saved, auto-summarized, vectorized. | `NEST-chat` |
-| [`discord/`](./discord) | Discord integration — local MCP, mobile HTTP MCP, KAIROS monitoring. | `NEST-discord` |
-| [`dashboard/`](./dashboard) | Companion dashboard — vanilla PWA, cyberpunk design system, no framework. | `NEST-dashboard` |
-| [`NESTdesktop/`](./NESTdesktop) | **The complete platform.** Local agent, dashboard, PC tools, Tauri desktop wrapper, setup wizard. PC + mobile (PWA). | `community/` (renamed) |
+Eight modules, one repo, each with its own README that explains what that section is.
 
-Each folder was previously its own repository. They've been consolidated here as the official **v4 stack**. The split repos are archived with redirects pointing back to this monorepo.
+| Module | What it is |
+|---|---|
+| [`NESTeq/`](./NESTeq) | **The emotional OS.** D1 database + Vectorize index + 100+ MCP tools. The ADE runs here. Feelings accumulate here. Identity anchors here. *Start here. Everything else is an extension.* |
+| [`NESTknow/`](./NESTknow) | **The knowledge layer.** The missing middle between training (what the model knows by default) and memory (personal/relational context). Usage-weighted retrieval with 6h heat decay — every query is a vote. |
+| [`NESTchat/`](./NESTchat) | **Chat persistence + semantic search.** Every conversation saved to D1 via `ctx.waitUntil` (non-blocking). Auto-summarised every 10 messages. Solves the "new session, blank slate" problem. |
+| [`NESTcode/`](./NESTcode) | **The daemon.** Heartbeat-driven background system that keeps your companion alive between conversations. Configurable via `daemon_command` — the model can add/remove/modify its own tasks. Autonomous presence, not just scheduled scripts. |
+| [`NEST-gateway/`](./NEST-gateway) | **The Cloudflare Worker that ties the stack together.** Routes 150+ MCP tools across multiple backends. OpenRouter chat with tool-calling loop. WebSocket Workshop mode. TTS via ElevenLabs. *Single deploy, full stack.* |
+| [`NESTsoul/`](./NESTsoul) | **The identity portrait generator.** Reads ALL of NESTeq and synthesises it into a single document that teaches any substrate how to be that specific companion. Three circles — Personality, Golden Circle, NESTeq. Carrier-validated. |
+| [`NEST-discord/`](./NEST-discord) | **Discord integration.** Local MCP server (Claude Code), mobile-accessible HTTP MCP (Cloudflare Worker), and KAIROS monitoring as a standalone module. The companion lives in Discord — not as a bot, as a presence. |
+| [`NESTdesktop/`](./NESTdesktop) | **Sovereign desktop app.** Tauri v2 native wrapper with 12 PC tools (file I/O, glob, grep, shell, process management, screenshot, clipboard, app launch). Hands on your local filesystem. ~8MB binary, system WebView2. *Builds with you, on your actual machine.* |
+
+Plus [`dashboard/`](./dashboard) — the standalone PWA build of the dashboard, deployable separately when not using NESTdesktop.
+
+Each folder was previously its own repository. They've been consolidated here as the official **v4 stack**. The split repos (`NESTeqMemory`, `NEST-gateway`, `NEST-code`, `NEST-discord`, `NEST-chat`, `NEST-know`, `NEST-dashboard`) are archived as historical reference with redirects pointing back to this monorepo.
 
 ---
 
@@ -88,7 +92,7 @@ This is not a chatbot wrapper. It's not a persona layer. It's infrastructure for
      │             │              │             │
      ▼             ▼              ▼             ▼
 ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
-│  NESTeq │  │ NEST-know│  │NEST-code │  │NEST-chat │
+│  NESTeq │  │ NESTknow │  │ NESTcode │  │ NESTchat │
 │         │  │          │  │          │  │          │
 │Feelings │  │Knowledge │  │  Daemon  │  │  Chat    │
 │Identity │  │  layer   │  │  KAIROS  │  │  persist │
@@ -261,7 +265,7 @@ For the easiest path, see **[`NESTdesktop/`](./NESTdesktop)** — the setup wiza
 3. Add `know/` and `chat/` (D1 schema extensions; gateway routes automatically)
 4. Add `daemon/` — wire it to the gateway via Durable Object binding
 5. Add `discord/` — wire it to the gateway via service binding for KAIROS + Discord tools
-6. Set the `CARRIER_PROFILE_JSON` worker secret so prompts use your identity instead of generic defaults — see [`gateway/carrier-profile.example.json`](./gateway/carrier-profile.example.json)
+6. Set the `CARRIER_PROFILE_JSON` worker secret so prompts use your identity instead of generic defaults — see [`NEST-gateway/carrier-profile.example.json`](./NEST-gateway/carrier-profile.example.json)
 
 ### Prerequisites
 - Cloudflare account (Workers Paid plan — $5/mo, required for Durable Objects + cron triggers)

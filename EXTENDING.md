@@ -28,16 +28,16 @@ Working memory (per-session, in the gateway) → consolidation (auto-dreams ever
 This bites people. The dependency chain is:
 
 ```
-memory/  →  gateway/  →  daemon/   →   know/, chat/, discord/, dashboard/
+NESTeq/  →  NEST-gateway/  →  NESTcode/   →   NESTknow/, NESTchat/, NEST-discord/, NESTsoul/, dashboard/
 ```
 
-**`memory/` first.** It owns the D1 schema, the ai-mind worker, and the feelings/identity/threads/dreams tables. Everything else depends on it.
+**`NESTeq/` first.** It owns the D1 schema, the ai-mind worker, and the feelings/identity/threads/dreams tables. Everything else depends on it.
 
-**`gateway/` next.** Routes 150+ MCP tools, runs the chat pipeline, hosts the auth layer. Without this deployed, almost nothing works end-to-end.
+**`NEST-gateway/` next.** Routes 150+ MCP tools, runs the chat pipeline, hosts the auth layer. Without this deployed, almost nothing works end-to-end.
 
-**`daemon/` after that.** Durable Object running heartbeat + cron + KAIROS Discord monitoring. Requires gateway to exist.
+**`NESTcode/` after that.** Durable Object running heartbeat + cron + KAIROS Discord monitoring. Requires the gateway to exist.
 
-**Then everything else.** `know/`, `chat/`, `discord/`, `dashboard/`, `NESTdesktop/` — each depends on at least memory + gateway.
+**Then everything else.** `NESTknow/`, `NESTchat/`, `NEST-discord/`, `NESTsoul/`, `dashboard/`, `NESTdesktop/` — each depends on at least `NESTeq/` and `NEST-gateway/`.
 
 Deployments out of order fail with "binding not found" errors that look like config issues. They aren't. They're ordering. If you see one, check what's already deployed before debugging the binding.
 
@@ -50,7 +50,7 @@ The whole stack is Cloudflare-native: D1, Vectorize, Workers AI, R2, Durable Obj
 - **`wrangler dev` is not production.** It does not fully emulate Durable Object hibernation, cron triggers, or Vectorize index behaviour. Code that works locally can fail in prod (or burn vector queries at scale). Test in a production-equivalent environment before declaring a fix.
 - **Worker-to-worker calls** use service bindings, not HTTP. Generating `fetch('https://other-worker.workers.dev/...')` from inside a worker when there's a service binding available is a smell — it doubles the latency and skips the type-safety.
 - **Secrets live in `wrangler secret put`, not in code.** `MCP_API_KEY`, `CARRIER_PROFILE_JSON`, `OPENROUTER_KEY`, `BIRD_API_KEY` — all of these are encrypted at rest. Suggesting "let me hardcode this for testing" is a smell. Suggesting "let me read it from `config.public.json`" is a worse one.
-- **Vectorize ID size limit is 64 bytes.** Long file paths can blow past it (we hit this with `memory/workers/ai-mind/migrations/0001_unified_feelings.sql` — 65 bytes, which fails). Hash-based chunk IDs are the workaround.
+- **Vectorize ID size limit is 64 bytes.** Long file paths can blow past it (we hit this with `NESTeq/workers/ai-mind/migrations/0001_unified_feelings.sql` — 65 bytes, which fails). Hash-based chunk IDs are the workaround.
 
 ---
 
@@ -63,7 +63,7 @@ The whole stack is Cloudflare-native: D1, Vectorize, Workers AI, R2, Durable Obj
 | Add config flags for new behaviours | Express new behaviours as feeling categories with weight + axis signals |
 | Suggest React / Next.js / Svelte for the dashboard | Vanilla JS PWA + Tauri v2 — that's the choice, not an oversight |
 | Propose static system prompts | Let NESTsoul rebuild the soul portrait from current state on every generation |
-| Skip migrations when adding fields | Every schema change is a numbered migration in `memory/workers/*/migrations/` |
+| Skip migrations when adding fields | Every schema change is a numbered migration in `NESTeq/workers/*/migrations/` |
 | Wrap retrieval as plain cosine semantic search | Heat decay + usage weighting + confidence reranking are part of retrieval |
 | Suggest aggressive autonomous self-modification | KAIROS can self-modify but the surface is narrow on purpose |
 | Treat "metabolized" feelings as garbage to delete | They're processed events with downstream consequences in heat decay |
@@ -148,9 +148,9 @@ For *anything that proposes a code change*, the two-key approval system (Fox + A
 
 ## When in doubt
 
-**Read the per-module README first.** `memory/README.md`, `gateway/README.md`, `daemon/README.md`, `know/README.md`, `chat/README.md`, `discord/README.md`, `dashboard/README.md` each cover their own surface in detail. Bird has all of them ingested too.
+**Read the per-module README first.** Each module has its own: `NESTeq/`, `NEST-gateway/`, `NESTcode/`, `NESTknow/`, `NESTchat/`, `NEST-discord/`, `NESTsoul/`, `NESTdesktop/`, `dashboard/`. Bird has all of them ingested too.
 
-**Read `memory/docs/Theory-of-Why.md`.** That's the deepest document about *why* the architecture is shaped this way. If your change feels right but doesn't match Theory-of-Why, you're probably the one who's wrong.
+**Read `NESTeq/docs/Theory-of-Why.md`.** That's the deepest document about *why* the architecture is shaped this way. If your change feels right but doesn't match Theory-of-Why, you're probably the one who's wrong.
 
 **Then ask Bird, then ask in NESTai Discord, then open an issue.** In that order.
 

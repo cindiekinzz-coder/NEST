@@ -240,6 +240,8 @@ const ChatApp = {
             <optgroup label="💰 Budget (Paid — no rate limits)" style="background:#1a1b2e;color:#e2e8f0;">
               <option value="qwen/qwen3.6-plus">Qwen 3.6 Plus — 1M, proven companion ($0.33/$1.95) ⭐</option>
               <option value="stepfun/step-3.5-flash">Step 3.5 Flash — 262K, MoE ($0.10/$0.30)</option>
+              <option value="xiaomi/mimo-v2.5-pro">MiMo V2.5 Pro — 1M, math + tools ($1/$3) ⭐</option>
+              <option value="xiaomi/mimo-v2.5">MiMo V2.5 — 1M, cheap ($0.40/$2)</option>
               <option value="xiaomi/mimo-v2-pro">MiMo V2 Pro — 1M context ($1/$3)</option>
               <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash ($0.10/$0.40)</option>
             </optgroup>

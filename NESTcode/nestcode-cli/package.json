@@ -1,0 +1,32 @@
+{
+  "name": "nestcode-cli",
+  "version": "0.1.0",
+  "description": "Terminal client for the NESTcode Workshop.",
+  "type": "module",
+  "bin": {
+    "nestcode": "./bin/nestcode.js",
+    "nestcode-tui": "./bin/nestcode-tui.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node ./bin/nestcode.js",
+    "tui": "tsx ./src/index.jsx"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "dependencies": {
+    "@inkjs/ui": "^2.0.0",
+    "ink": "^7.0.1",
+    "react": "^19.1.0",
+    "diff": "^9.0.0",
+    "figures": "^6.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  },
+  "license": "MIT"
+}

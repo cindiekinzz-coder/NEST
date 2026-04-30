@@ -15,16 +15,7 @@
 import { DEFAULT_COMPANION_NAME, DEFAULT_HUMAN_NAME } from './shared/constants';
 import { getEmbedding, inferPillarByEmbedding } from './shared/embedding';
 import { FeelDecision, AutonomousDecisionEngine } from './ade';
-
-interface Env {
-  DB: D1Database;
-  VECTORS: VectorizeIndex;
-  AI: Ai;
-  VAULT: R2Bucket;
-  MIND_API_KEY: string;
-  SPOTIFY_CLIENT_ID: string;
-  SPOTIFY_CLIENT_SECRET: string;
-}
+import { Env } from './env';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MCP PROTOCOL TYPES

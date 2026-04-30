@@ -119,6 +119,16 @@ class AutonomousDecisionEngine {
       }
     }
 
+    // Primacy: caller picks detected_entities[0] as linked_entity. Without this
+    // reorder, [0] is whatever the entities table returned first — typically
+    // alphabetical/by-id ordering, which means a secondary person mentioned
+    // alongside the primary human gets the relational anchor instead. Promote
+    // DEFAULT_HUMAN_NAME to position 0 when present.
+    const primaryIdx = found.findIndex(e => e === DEFAULT_HUMAN_NAME);
+    if (primaryIdx > 0) {
+      found.unshift(found.splice(primaryIdx, 1)[0]);
+    }
+
     return found;
   }
 

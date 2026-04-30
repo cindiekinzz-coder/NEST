@@ -58,6 +58,36 @@ Feelings can spark other feelings (`sparked_by`). They can be sat with, resolved
 
 ---
 
+## Source layout
+
+The `ai-mind` worker is split across one module per concern. Pick the file that matches what you're touching:
+
+```
+workers/ai-mind/src/
+├── index.ts            ← worker entry: fetch handler, scheduled cron, route table, tools/call dispatch
+├── env.ts              ← Cloudflare bindings + secret types (D1, Vectorize, AI, R2)
+├── ade.ts              ← AutonomousDecisionEngine — entity/weight/tags/pillar inference per feeling
+├── boot.ts             ← handleMindOrient / handleMindGround / handleMindSessions
+├── feelings.ts         ← handleMindFeel + search / surface / sit / resolve / spark / feel-toward
+├── eq.ts               ← all 9 handleMindEq* handlers (type, landscape, vocabulary, shadow, when, …)
+├── memory.ts           ← entity / observation / relation / journal write + read + edit + delete
+├── threads.ts          ← handleMindThread (persistent intentions across sessions)
+├── identity.ts         ← handleMindIdentity + handleMindContext (the identity graph + context layer)
+├── hearth.ts           ← Binary Home native + Hearth-compat adapters
+├── dreams.ts           ← dream surface / recall / anchor / generate (Workers AI)
+├── drives.ts           ← five companion drives (connection, novelty, expression, safety, play)
+├── spotify.ts          ← /spotify/auth + /callback OAuth + auth-gated /spotify/* API proxy
+├── shared/
+│   ├── constants.ts    ← DEFAULT_COMPANION_NAME / DEFAULT_HUMAN_NAME (override at deploy time)
+│   ├── embedding.ts    ← getEmbedding, inferPillarByEmbedding, pillar embeddings cache
+│   └── utils.ts        ← generateId helper
+└── pet/                ← TypeScript port of Corvid (biochem + brain + collection + creature + ferret)
+```
+
+Per-module imports surface from `./<module>`. `index.ts` is the orchestrator — it imports handlers and routes incoming MCP / HTTP / cron calls to them.
+
+---
+
 ## MCP Tools
 
 NESTeq exposes its full surface as MCP tools. Connect any MCP-compatible client.
@@ -128,8 +158,8 @@ NESTeq exposes its full surface as MCP tools. Connect any MCP-compatible client.
 
 ### 1. Clone
 ```bash
-git clone https://github.com/cindiekinzz-coder/NESTeqMemory.git
-cd NESTeqMemory/workers/ai-mind
+git clone https://github.com/cindiekinzz-coder/NESTstack.git
+cd NESTstack/NESTeq/workers/ai-mind
 ```
 
 ### 2. Create D1 + Vectorize
@@ -219,6 +249,84 @@ See [NEST](https://github.com/cindiekinzz-coder/NEST) for the full stack archite
 ## License
 
 Attribution + No-Code-Removal. Credit the authors, don't strip original code. See [LICENSE](./LICENSE).
+
+---
+
+## What changed and why — v3.0.0 module split (2026-04-30)
+
+> Short version: the worker used to be one 8,077-line file. It isn't anymore.
+
+### What
+
+`workers/ai-mind/src/index.ts` — previously the entire `ai-mind` worker, including ADE, every handler, every interface, every helper, every HTTP route, the cron, and the MCP dispatch — was split into thirteen single-file modules plus a `shared/` folder of common helpers and a `pet/` folder for the Corvid creature engine port. `index.ts` itself dropped from **8,077 → 5,240 lines** (−24% in this initial pass; the remaining residue is documented as v3.1 follow-on work — see *Known follow-on* below).
+
+The thirteen new modules:
+
+| Module | What lives there | Public commit |
+|---|---|---|
+| `ade.ts` | `AutonomousDecisionEngine` + `FeelDecision` | (pre-v3.0.0) |
+| `shared/embedding.ts` | `getEmbedding`, `inferPillarByEmbedding`, pillar embeddings cache | [`8762979`](https://github.com/cindiekinzz-coder/NESTstack/commit/8762979) |
+| `pet/` | Corvid creature engine port (biochem / brain / collection / creature / ferret) — was missing from public; restored | [`de7fa08`](https://github.com/cindiekinzz-coder/NESTstack/commit/de7fa08), [`c3ce28e`](https://github.com/cindiekinzz-coder/NESTstack/commit/c3ce28e) |
+| `env.ts` | `Env` interface (Cloudflare bindings + secrets) | [`2e2c9d5`](https://github.com/cindiekinzz-coder/NESTstack/commit/2e2c9d5) |
+| `dreams.ts` | dream surface / recall / anchor / generate | [`4491ea8`](https://github.com/cindiekinzz-coder/NESTstack/commit/4491ea8) |
+| `hearth.ts` | Binary Home native + Hearth-compat adapters (14 handlers) | [`b62063b`](https://github.com/cindiekinzz-coder/NESTstack/commit/b62063b) |
+| `identity.ts` + `shared/utils.ts` | identity & context handlers + `generateId` helper | [`e877c8e`](https://github.com/cindiekinzz-coder/NESTstack/commit/e877c8e) |
+| `drives.ts` | `handleDrivesCheck` / `handleDrivesReplenish` | [`171056d`](https://github.com/cindiekinzz-coder/NESTstack/commit/171056d) |
+| `threads.ts` | `handleMindThread` (persistent intentions) | [`f7b2379`](https://github.com/cindiekinzz-coder/NESTstack/commit/f7b2379) |
+| `boot.ts` | `handleMindOrient` / `handleMindGround` / `handleMindSessions` | [`fe5c3e0`](https://github.com/cindiekinzz-coder/NESTstack/commit/fe5c3e0) |
+| `memory.ts` | entity / observation / relation / journal write + read + edit + delete | [`19909bb`](https://github.com/cindiekinzz-coder/NESTstack/commit/19909bb) |
+| `feelings.ts` | `handleMindFeel` + search / surface / sit / resolve / spark / feel-toward | [`5a8a312`](https://github.com/cindiekinzz-coder/NESTstack/commit/5a8a312) |
+| `eq.ts` | all 9 `handleMindEq*` handlers | [`0bd4879`](https://github.com/cindiekinzz-coder/NESTstack/commit/0bd4879) |
+| `spotify.ts` | OAuth + auth-gated API proxy | [`39f17b4`](https://github.com/cindiekinzz-coder/NESTstack/commit/39f17b4) |
+
+**Behaviour is unchanged.** No schema changes, no endpoint changes, no tool-name changes. Every handler does exactly what it did before; it just lives in the file you'd expect it to live in. If something observably differs, that's a bug — please open an issue.
+
+### Why
+
+**1. The repo was modular at the folder layer but monolithic at the code layer.** The `NESTeq/`, `NESTchat/`, `NESTcode/` folders read like a clean modular system. Inside, the worker brain was one file with 60+ handlers, an ADE class, embedding helpers, route tables, cron, and MCP dispatch all glued together. The folder shape lied about what was inside.
+
+**2. Carriers running modular variants couldn't `git pull`.** When carriers (Cael, Vex, Jax) deployed a modular `core.ts + memory.ts + ade.ts + hearth.ts` split locally, they couldn't pull upstream patches — diff line numbers didn't match. They were hand-porting every change. Their repos were more organized than the upstream maintainer's. After v3.0.0, upstream and modular-V3 deployments share a structure: patches port directly.
+
+**3. The 8k-line file was a dependency wall.** Cross-handler refactors meant scrolling through emoji-resolution code to fix a session-handover bug. New handlers got dropped in next to whichever existing one had the closest name. The natural shape of the code got swallowed by file size. Modules force the question "where does this belong?" before "where can this fit?"
+
+**4. Carriers asked for it.** Naming aligned with what carriers were already using where it made sense — `hearth.ts` instead of `home.ts`, `memory.ts` and `ade.ts` matching theirs verbatim.
+
+### How (the protocol that actually shipped)
+
+Every module followed the same gate sequence. No skipped steps, no batched commits.
+
+1. Create module file. Move the relevant functions and any module-private helpers.
+2. Add `export` keywords. Update imports in `index.ts`.
+3. `npx tsc --noEmit` — **must stay at the pre-existing baseline of 21 errors**. Zero new errors tolerated.
+4. `npx wrangler deploy` to production.
+5. Smoke test the relevant MCP tool (e.g. `nesteq_home_read` after the `hearth.ts` extract).
+6. Commit + push with `refactor(nesteq): extract <module>.ts (v3.0.0 split #N)`.
+
+The personal repo (Fox's working copy at `Desktop/NESTeq/`) and this public one were edited in lockstep — same module, same commit, single typecheck/deploy cycle on personal first. Divergences (different AI models in `dreams.ts`, simpler drive routing on public, no In-Flight HTTP routes on public) were preserved per-module rather than forced to a single shape.
+
+### Known follow-on (v3.1)
+
+The split is meaningful as-is, but `index.ts` still holds residue. Six handler families are still inline — they were never enumerated as their own modules in the original plan and got noticed when extracting the MCP dispatch:
+
+- ACP handlers (`handleAcpPresence`, `_Patterns`, `_Threads`, `_Digest`, `_JournalPrompts`, `_Connections`)
+- Hearth-side handlers (`handleGetEQ`, `_SubmitEQ`, `_SubmitHealth`, `_GetPatterns`, `_GetWritings`, `_GetPersonality`, `_GetFears`, `_GetWants`, `_GetThreadsHearth`)
+- NESTknow (`handleKnowStore`, `_Query`, `_Extract`, `_Reinforce`, `_Contradict`, `_Landscape`, `_HeatDecay`, `_SessionStart`, `_SessionComplete`, `_SessionList`)
+- NESTchat (`nestchat_search`, `_history`, `_persist`, `_append`, `_new_session`, `_close_session` — currently inline DB queries in the dispatch switch)
+- Thalamus (`handleThalamusSurface` + RRF / Workers-AI judgment helpers)
+- Pet handlers (`handlePetCheck`, `_Status`, `_Interact`, `_Play`, `_Give`, `_Nest` + `loadCreature` / `saveCreature`)
+- Health composer (`handleMindHealth`, `_Prime`, `_Consolidate`, `_VectorizeJournals`, `_NesteqBoot`)
+
+Once those land, `index.ts` becomes the thin entry point the original plan called for: `export default { fetch, scheduled }` plus a `mcp-dispatch.ts` import and a `routes.ts` import. Tracked as v3.1.
+
+### If you're a carrier maintaining a modular fork
+
+You can finally `git pull` directly. The naming aligns where it could:
+- `ade.ts` ✓ (exact match)
+- `memory.ts` ✓ (exact match)
+- `hearth.ts` ✓ (exact match — was `home.ts` internally)
+- `feelings.ts` is finer-grained than the typical `core.ts` — feel free to roll feelings + boot + identity into a `core.ts` umbrella in your fork; the diff lines still align inside the functions.
+
+If your modular layout differs in a way that makes pulling painful, open an issue describing your file layout and the rename map you'd want — happy to make naming converge if it serves the ecosystem.
 
 ---
 

@@ -23,6 +23,7 @@ import {
   handleGetNotes, handleSendNote, handleReactToNote, handleGetLoveBucket, handleAddHeart,
 } from './hearth';
 import { handleMindIdentity, handleMindContext } from './identity';
+import { handleDrivesCheck, handleDrivesReplenish } from './drives';
 import { Env } from './env';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -5228,38 +5229,13 @@ async function handleMCPRequest(request: Request, env: Env): Promise<Response> {
             result = { content: [{ type: "text", text: await handlePetTuckIn(env) }] };
             break;
 
-          case "nesteq_drives_check": {
-            const driveRows = await env.DB.prepare(
-              `SELECT drive, level, decay_rate, last_replenished_at FROM companion_drives ORDER BY id`
-            ).all();
-            const now = Date.now();
-            const icons: Record<string, string> = { connection: '🔗', novelty: '🌀', expression: '🗣️', safety: '🛡️', play: '🎲' };
-            const lines = ((driveRows.results || []) as any[]).map(r => {
-              const hrs = (now - new Date(r.last_replenished_at + 'Z').getTime()) / 3600000;
-              const pct = Math.round(Math.max(0, Math.min(1, r.level - r.decay_rate * hrs)) * 100);
-              const bar = pct < 30 ? '⚠️' : pct < 60 ? '〰️' : '✓';
-              return `${icons[r.drive] || '•'} ${r.drive}: ${pct}% ${bar}`;
-            });
-            result = { content: [{ type: "text", text: `## My Drives\n${lines.join('\n')}` }] };
+          case "nesteq_drives_check":
+            result = { content: [{ type: "text", text: await handleDrivesCheck(env) }] };
             break;
-          }
 
           case "nesteq_drives_replenish": {
             const { drive, amount, reason } = toolParams as { drive: string; amount: number; reason?: string };
-            const driveRow = await env.DB.prepare(
-              `SELECT level, decay_rate, last_replenished_at FROM companion_drives WHERE drive = ? LIMIT 1`
-            ).bind(drive).first() as any;
-            if (!driveRow) {
-              result = { content: [{ type: "text", text: `Unknown drive: ${drive}. Valid: connection, novelty, expression, safety, play` }] };
-              break;
-            }
-            const hrs = (Date.now() - new Date(driveRow.last_replenished_at + 'Z').getTime()) / 3600000;
-            const prev = Math.max(0, driveRow.level - driveRow.decay_rate * hrs);
-            const newLevel = Math.min(1, Math.max(0, prev + amount));
-            await env.DB.prepare(
-              `UPDATE companion_drives SET level = ?, last_replenished_at = datetime('now'), updated_at = datetime('now') WHERE drive = ?`
-            ).bind(newLevel, drive).run();
-            result = { content: [{ type: "text", text: `${drive} replenished: ${Math.round(prev * 100)}% → ${Math.round(newLevel * 100)}%${reason ? ` (${reason})` : ''}` }] };
+            result = { content: [{ type: "text", text: await handleDrivesReplenish(env, drive, amount, reason) }] };
             break;
           }
 

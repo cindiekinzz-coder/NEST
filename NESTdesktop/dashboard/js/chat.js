@@ -790,7 +790,11 @@ const ChatApp = {
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
-        let currentEvent = 'message'; // default event type
+        // Default to empty so OpenAI-compatible providers (OpenRouter, OpenAI, LM Studio,
+        // Ollama) — which send `data:` lines without an `event:` prefix — fall through to
+        // the delta handler. The custom 'message' branch only fires when the gateway
+        // explicitly emits `event: message`.
+        let currentEvent = '';
         for (const line of lines) {
           // Check for event type line
           if (line.startsWith('event: ')) {

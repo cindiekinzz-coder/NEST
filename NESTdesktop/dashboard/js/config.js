@@ -8,6 +8,12 @@ const NESTeqConfig = {
   _cache: null,
   _status: null,
 
+  // Synchronous accessor — returns whatever is currently cached.
+  // Use getPublicConfig() if you need to fetch.
+  get() {
+    return this._cache;
+  },
+
   async getPublicConfig(force = false) {
     if (this._cache && !force) return this._cache;
     try {
